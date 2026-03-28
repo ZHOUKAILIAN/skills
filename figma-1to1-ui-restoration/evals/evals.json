@@ -2,6 +2,12 @@
   "skill_name": "figma-1to1-ui-restoration",
   "evals": [
     {
+      "id": 0,
+      "prompt": "这是 Figma 链接：https://www.figma.com/design/abc123/demo?node-id=150-27773。如果你发现 Figma MCP 还没连上，先告诉我怎么配置，不要假装已经读过节点，也不要先开始改代码。",
+      "expected_output": "应该先确认 Figma MCP 是否可用。若不可用，应停止审计和开发，给出 figma MCP 的添加、开启 rmcp_client、登录和重启后重试的步骤，而不是继续猜测节点信息或开始写代码。",
+      "files": []
+    },
+    {
       "id": 1,
       "prompt": "读取这个 Figma 节点 `150-27773`，并把下面所有子节点都读到最底层。我不要只看截图，要把字体大小、行高、间距、按钮尺寸、状态差异都列出来。确认读完整之后，再直接修改原来的粗版本代码。",
       "expected_output": "应该先定义边界，完整读取目标范围内节点和状态，形成节点台账后再定位原实现并在原文件上修改，而不是一边读一边直接写代码。",

@@ -2,6 +2,20 @@
 
 这些样例要覆盖“已有粗版本收紧”“从零实现组件”“整页还原 + 多状态”三类典型任务。
 
+## Prompt 0: 先处理 Figma MCP 未就绪
+
+这是 Figma 链接：https://www.figma.com/design/abc123/demo?node-id=150-27773  
+如果你发现 Figma MCP 还没连上，先告诉我怎么配置，不要假装已经读过节点，也不要先开始改代码。
+
+### 期望
+
+- 先检测 Figma MCP 是否可用
+- MCP 不可用时停止审计和开发
+- 给出 `codex mcp add figma --url https://mcp.figma.com/mcp`
+- 提醒启用 `rmcp_client`
+- 提醒执行 `codex mcp login figma`
+- 说明需要重启 Codex 后再继续原任务
+
 ## Prompt 1: 读全节点再收紧粗版本
 
 读取这个 Figma 节点 `150-27773`，并把下面所有子节点都读到最底层。  

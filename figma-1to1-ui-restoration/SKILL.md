@@ -1,7 +1,7 @@
 ---
 name: figma-1to1-ui-restoration
 description: |
-  General Figma restoration workflow: fully read the Figma nodes, child nodes, states, assets, and key specs within the target scope before starting development or code changes, then converge the implementation to true 1:1 fidelity. Use this skill whenever the user says things like "align to Figma", "restore 1:1", "implement this from Figma", "read all child nodes under this node", "tighten the rough version", or "read the full node information before development". It applies to components, popups, pages, partial modules, and both new implementations and refinements of an existing rough implementation.
+  Use when a user provides a Figma URL or node ID and wants an existing UI aligned or a new UI implemented with exact 1:1 fidelity, especially when they ask to read all child nodes, states, assets, and specs before coding. Applies to components, popups, pages, partial modules, and both new implementations and refinements of an existing rough implementation.
 ---
 
 # General Figma 1:1 Restoration Workflow
@@ -10,11 +10,12 @@ Treat this work as scoped design auditing plus implementation convergence, not a
 
 Default goals:
 
-1. Define the restoration boundary first
-2. Fully read every relevant node inside that boundary
-3. Find the existing implementation or decide the correct new entry point
-4. Only then write tests and production code
-5. Lock the result with verification
+1. Ensure Figma MCP is available
+2. Define the restoration boundary first
+3. Fully read every relevant node inside that boundary
+4. Find the existing implementation or decide the correct new entry point
+5. Only then write tests and production code
+6. Lock the result with verification
 
 ## First Principle
 
@@ -46,11 +47,22 @@ If the scope is too large, define the boundary first and then read everything in
 - There is no Figma node and exact restoration is not required
 - The real task is new product design rather than restoring an existing design
 
+## Prerequisites
+
+- A working Figma MCP connection is required for the strict 1:1 workflow
+- The user should provide either:
+  - A Figma URL containing `fileKey` and `node-id`
+  - Or a currently selected node if the environment exposes a desktop Figma MCP server
+- Exact restoration should not proceed from screenshots alone when node-level audit data is required
+
 ## Inputs
 
 Extract as much as possible from the conversation before asking follow-up questions:
 
 - Figma URL or `fileKey + nodeId`
+- Access mode
+  - Remote Figma MCP with URL parsing
+  - Desktop Figma MCP with current selection, if available in the environment
 - Child nodes or states the user explicitly calls out
 - Target boundary
   - Single component
@@ -84,8 +96,8 @@ Suggested directory:
 
 ```text
 docs/analysis/YYYYMMDD-figma-node-<root-node>-audit/
-├── README.md
-└── ALL_CHILD_NODES.md
+|- README.md
+`- ALL_CHILD_NODES.md
 ```
 
 If you do not want to start from scratch every time, prefer the bundled templates:
@@ -97,7 +109,30 @@ assets/templates/figma-all-child-nodes-template.md
 
 ## Workflow
 
-### 0. Define the restoration boundary first
+### 0. Ensure Figma MCP is available before the audit
+
+Before boundary definition or development, confirm how the Figma data will be read.
+
+- If Figma MCP tools are already available and authenticated, continue to Step 1
+- If the user provided a Figma URL, extract `fileKey` and `node-id` from it
+- If the environment exposes a desktop Figma MCP server and the user is working from the current selection, use that mode instead of forcing a URL
+
+If any Figma MCP call fails because the server is missing or unauthenticated, stop and set it up first:
+
+1. Add the Figma MCP server:
+   - `codex mcp add figma --url https://mcp.figma.com/mcp`
+2. Enable the remote MCP client:
+   - Set `[features].rmcp_client = true` in `config.toml`
+   - Or run `codex --enable rmcp_client`
+3. Authenticate:
+   - `codex mcp login figma`
+4. Restart Codex, then retry the task
+
+If setup is required, finish the answer with the setup instructions and tell the user to retry after restart. Do not pretend the audit already happened.
+
+**Hard rule: if Figma MCP is unavailable, do not fabricate node reads, specs, or audit results from screenshots or guesses.**
+
+### 1. Define the restoration boundary first
 
 Before development, make the boundary explicit:
 
@@ -109,7 +144,7 @@ Before development, make the boundary explicit:
 
 If the user says "read until node X" or "all child nodes under this node", record that as the boundary rule and use it for every later read and code decision.
 
-### 1. Decide whether this is a refinement or a new implementation
+### 2. Decide whether this is a refinement or a new implementation
 
 Search the existing code first:
 
@@ -119,7 +154,7 @@ Search the existing code first:
 
 If the user says "just modify the original one", do not create a parallel implementation.
 
-### 2. Follow project-specific documentation rules first
+### 3. Follow project-specific documentation rules first
 
 If the project has `AGENTS.md`, `CLAUDE.md`, requirement docs, or design docs:
 
@@ -129,7 +164,7 @@ If the project has `AGENTS.md`, `CLAUDE.md`, requirement docs, or design docs:
 
 Do not bypass the project's workflow.
 
-### 3. Build a complete node ledger with Figma MCP
+### 4. Build a complete node ledger with Figma MCP
 
 Before development begins, complete at least one full read pass.
 
@@ -152,7 +187,7 @@ Then expand until all important nodes inside the boundary are covered:
 
 Do not stop at the root screenshot.
 
-### 4. Extract the right level of detail during the audit
+### 5. Extract the right level of detail during the audit
 
 Always try to capture:
 
@@ -182,7 +217,7 @@ Pay special attention to misleading outer bounds, for example:
 
 In cases like that, implementation should follow the real internal structure, not the metadata rectangle alone.
 
-### 5. Build a dedicated state matrix
+### 6. Build a dedicated state matrix
 
 A single screenshot summary is not enough.
 
@@ -206,7 +241,7 @@ Recommended format:
 | disabled | ... | ... | yes |
 ```
 
-### 6. Audit document structure
+### 7. Audit document structure
 
 `README.md` should usually include:
 
@@ -235,7 +270,7 @@ Prefer starting from `assets/templates/figma-audit-readme-template.md`.
 
 Prefer starting from `assets/templates/figma-all-child-nodes-template.md`.
 
-### 7. Choose between refining the original implementation and building fresh
+### 8. Choose between refining the original implementation and building fresh
 
 There are two modes:
 
@@ -253,7 +288,7 @@ If no implementation exists:
 - Create the new component or page
 - But still complete the node ledger before coding
 
-### 8. Translate Figma numbers into project conventions
+### 9. Translate Figma numbers into project conventions
 
 Do not copy values blindly.
 
@@ -264,7 +299,7 @@ Check the project's measurement system first:
 
 If the file already uses `rpx`, translate using the project's established scale. If the file follows a different unit convention, stay consistent with that file.
 
-### 9. Confirm assets and dependencies before coding
+### 10. Confirm assets and dependencies before coding
 
 If the restoration includes:
 
@@ -282,7 +317,7 @@ Confirm first whether you should:
 
 Do not ship a placeholder asset implementation while pretending the design is fully restored.
 
-### 10. Use TDD for implementation
+### 11. Use TDD for implementation
 
 Whenever code changes are needed:
 
@@ -294,7 +329,7 @@ Whenever code changes are needed:
 
 The key is not "tests were written". The key is "the new checks were seen failing first, then passing".
 
-### 11. What to test
+### 12. What to test
 
 Prefer tests that lock down Figma geometry and state details:
 
@@ -310,7 +345,7 @@ Prefer tests that lock down Figma geometry and state details:
 
 Include node IDs in test names when practical for easier traceability.
 
-### 12. Code change principles
+### 13. Code change principles
 
 - Prefer editing the original implementation rather than creating a parallel one
 - Preserve existing business logic whenever possible
@@ -318,7 +353,7 @@ Include node IDs in test names when practical for easier traceability.
 - Use precise patches instead of rewriting entire files casually
 - If the current code is just a rough version, continue tightening that exact implementation
 
-### 13. Final verification
+### 14. Final verification
 
 Always do at least two layers:
 
@@ -332,7 +367,7 @@ If `npm` or `node` is not on the default PATH:
 
 Do not skip verification just because the environment PATH is odd.
 
-### 14. Visual final pass
+### 15. Visual final pass
 
 When time allows, do one final visual check:
 
@@ -355,6 +390,7 @@ When reporting results, cover:
 
 ## Practical Reminders
 
+- If Figma MCP is missing or login has expired, stop after the setup instructions and tell the user to retry after restart
 - If the user asks "did you read to the deepest layer?", answer in terms of boundary coverage and leaf-node coverage, not vague reassurance
 - If the user asks whether typography can be read, answer specifically: size, line height, weight, color, tracking, and related text specs
 - If the user says "read all nodes before development", treat that as a strict gate
