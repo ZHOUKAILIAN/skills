@@ -7,7 +7,15 @@ description: |
 # Customer Service Troubleshooting (CST)
 
 ## First Use
-Ask for git repo URL, mysql host/user/password. Create `config.env` and ask user to `export $(cat config.env | grep -v '^#' | xargs)`
+Ask for git repo URL, mysql host/user/password, and Alibaba Cloud CLI credentials.
+
+Create `config.env` and ask user to `export $(cat config.env | grep -v '^#' | xargs)`.
+
+The Alibaba Cloud CLI credentials can be placed in environment variables. Prefer:
+- `ALIBABA_CLOUD_ACCESS_KEY_ID`
+- `ALIBABA_CLOUD_ACCESS_KEY_SECRET`
+- `ALIBABA_CLOUD_REGION_ID`
+- `ALIBABA_CLOUD_SECURITY_TOKEN` (optional, if using STS)
 
 ## Workflow
 
@@ -20,6 +28,8 @@ Do not move on while the reported phenomenon is still vague. If the description 
 Check Alibaba Cloud logs first. This can include Alibaba Cloud Log Service, application logs, ECS logs, container logs, or other Alibaba Cloud-hosted logging and monitoring sources your environment already uses.
 
 Use the logs to verify whether the reported symptom actually occurred, when it occurred, which request, task, or job was involved, and what failed around that time.
+
+Before querying logs, make sure the Alibaba Cloud CLI environment variables are already exported in the current shell.
 
 ### 3. Read Code
 Repo at `/tmp/cst-repo/`. If exists: `cd /tmp/cst-repo && git checkout master && git pull origin master`. If not: `git clone "$CST_GIT_REPO" /tmp/cst-repo`
