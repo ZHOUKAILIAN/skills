@@ -8,20 +8,26 @@ description: |
 
 ## First Use
 
-Ask for git repo URL, mysql host/user/password, the log-query method the user already uses, and any log-related connection details or credentials required to use it.
+First check whether the current shell already has the required environment variables for git access, database access, and log access.
 
-Create `config.env`, write both database and log-related environment variables into it, and ask user to `export $(cat config.env | grep -v '^#' | xargs)`.
+Prefer a named log access method in `CST_LOG_ACCESS_METHOD`. If it is already set, use it as the default log-query method for this investigation.
+
+If the relevant environment variables are already present, confirm they are the right ones to use for this investigation and only ask the user for anything that is still missing.
+
+If required values are missing, ask for git repo URL, mysql host/user/password, the log-query method the user already uses, and any log-related connection details or credentials required to use it.
+
+Create or update `config.env`, write both database and log-related environment variables into it, and ask user to `export $(cat config.env | grep -v '^#' | xargs)`.
 
 If the chosen log access method needs credentials, endpoints, project names, logstore names, cluster context, tokens, or other connection details, put them in `config.env` with clear variable names before querying logs.
 
-If the user wants to use `aliyun-cli`, its credentials can be placed in environment variables. Prefer:
+If `CST_LOG_ACCESS_METHOD=aliyun-cli`, use `aliyun-cli` directly and keep its required credentials in environment variables. Prefer:
 
 - `ALIBABA_CLOUD_ACCESS_KEY_ID`
 - `ALIBABA_CLOUD_ACCESS_KEY_SECRET`
 - `ALIBABA_CLOUD_REGION_ID`
 - `ALIBABA_CLOUD_SECURITY_TOKEN` (optional, if using STS)
 
-Do not force a specific CLI. If the user already has another way to query Alibaba Cloud logs, use that instead.
+If `CST_LOG_ACCESS_METHOD` is set to another value, use that method and the corresponding environment variables or connection details instead.
 
 ## Workflow
 
@@ -33,9 +39,11 @@ Do not move on while the reported phenomenon is still vague. If the description 
 
 ### 2. Query Logs
 
-Start by asking the user how the relevant logs should be accessed.
+First check `CST_LOG_ACCESS_METHOD`.
 
-Use the access method the user provides and check the relevant logs first.
+If `CST_LOG_ACCESS_METHOD` is already configured, use that method directly and do not ask the user again unless the configuration is missing, ambiguous, or clearly wrong.
+
+If `CST_LOG_ACCESS_METHOD` is not configured, ask the user how the relevant logs should be accessed, then store that method in `config.env` for future runs.
 
 Check the relevant logs first to verify whether the reported symptom actually occurred, when it occurred, which request, task, or job was involved, and what failed around that time.
 
