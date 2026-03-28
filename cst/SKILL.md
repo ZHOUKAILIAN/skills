@@ -1,7 +1,7 @@
 ---
 name: cst
 description: |
-  Use when investigating a customer service issue that requires aligning on the observed symptoms first, checking the relevant logs the user provides access to, reading the repo, verifying MySQL data, identifying the real root cause, and explaining both symptoms and the underlying problem in language product and engineering can both understand.
+  Use when investigating a customer service issue that requires aligning on the observed symptoms first, checking the relevant logs the user provides access to, reading the relevant frontend and backend code, verifying MySQL data, identifying the real root cause, and explaining both symptoms and the underlying problem in language product and engineering can both understand.
 ---
 
 # Customer Service Troubleshooting (CST)
@@ -10,11 +10,13 @@ description: |
 
 First check whether the current shell already has the required environment variables for git access, database access, and log access.
 
+Treat frontend code location and backend code location as separate inputs. Do not assume they live in the same directory or the same repository.
+
 Prefer a named log access method in `CST_LOG_ACCESS_METHOD`. If it is already set, use it as the default log-query method for this investigation.
 
 If the relevant environment variables are already present, confirm they are the right ones to use for this investigation and only ask the user for anything that is still missing.
 
-If required values are missing, ask for git repo URL, mysql host/user/password, the log-query method the user already uses, and any log-related connection details or credentials required to use it.
+If required values are missing, ask for the frontend code location, the backend code location, mysql host/user/password, the log-query method the user already uses, and any log-related connection details or credentials required to use it.
 
 Create or update `config.env`, write both database and log-related environment variables into it, and ask user to `export $(cat config.env | grep -v '^#' | xargs)`.
 
@@ -51,9 +53,21 @@ If multiple log sources are available, ask the user which one is most relevant o
 
 ### 3. Read Code
 
-Repo at `/tmp/cst-repo/`. If exists: `cd /tmp/cst-repo && git checkout master && git pull origin master`. If not: `git clone "$CST_GIT_REPO" /tmp/cst-repo`
+Do not assume frontend and backend code live in the same place.
 
-Search relevant files with `rg` or `Glob`. Understand the logic flow that matches the symptom and the log evidence.
+If frontend and backend are in different repositories, keep them in separate working directories such as `/tmp/cst-frontend-repo/` and `/tmp/cst-backend-repo/`.
+
+If they are in the same repository, still treat them as different code locations and use separate path hints such as `CST_FRONTEND_CODE_PATH` and `CST_BACKEND_CODE_PATH`.
+
+Frontend repo: if `CST_FRONTEND_GIT_REPO` is set and `/tmp/cst-frontend-repo/` exists, `cd /tmp/cst-frontend-repo && git checkout master && git pull origin master`. If it is set and the directory does not exist, `git clone "$CST_FRONTEND_GIT_REPO" /tmp/cst-frontend-repo`
+
+Backend repo: if `CST_BACKEND_GIT_REPO` is set and `/tmp/cst-backend-repo/` exists, `cd /tmp/cst-backend-repo && git checkout master && git pull origin master`. If it is set and the directory does not exist, `git clone "$CST_BACKEND_GIT_REPO" /tmp/cst-backend-repo`
+
+Treat the code path as potentially split across frontend code and backend code.
+
+Search relevant files with `rg` or `Glob` in the corresponding frontend and backend locations. Read the frontend entry points, request construction, page logic, and state handling when the symptom is user-facing. Read the backend handlers, services, jobs, and data-processing logic that receive or continue that flow.
+
+When the issue crosses layers, trace the full path from frontend behavior to backend processing and then to database changes, task execution, or external calls. Understand the logic flow that matches the symptom and the log evidence.
 
 ### 4. Query Database
 
