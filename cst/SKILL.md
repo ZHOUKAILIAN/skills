@@ -1,14 +1,14 @@
 ---
 name: cst
 description: |
-  Use when investigating a customer service issue that requires aligning on the observed symptoms first, checking the relevant logs the user provides access to, reading the relevant frontend and backend code, verifying MySQL data, identifying the real root cause, and explaining both symptoms and the underlying problem in language product and engineering can both understand.
+  Use when investigating a customer service issue that requires aligning on the observed symptoms first, checking the relevant logs the user provides access to, reading the relevant frontend and backend code, verifying MySQL data, identifying the real root cause, explaining both symptoms and the underlying problem in language product and engineering can both understand, and optionally appending the final investigation summary to a Feishu doc through lark-cli.
 ---
 
 # Customer Service Troubleshooting (CST)
 
 ## First Use
 
-First check whether the current shell already has the required environment variables for git access, database access, and log access.
+First check whether the current shell already has the required environment variables for git access, database access, log access, and optional Feishu doc logging.
 
 Treat frontend code location and backend code location as separate inputs. Do not assume they live in the same directory or the same repository.
 
@@ -30,6 +30,18 @@ If `CST_LOG_ACCESS_METHOD=aliyun-cli`, use `aliyun-cli` directly and keep its re
 - `ALIBABA_CLOUD_SECURITY_TOKEN` (optional, if using STS)
 
 If `CST_LOG_ACCESS_METHOD` is set to another value, use that method and the corresponding environment variables or connection details instead.
+
+If the team wants every finished investigation written to Feishu Docs, prefer this setup:
+
+- Install `lark-cli`
+- Run `lark-cli config init` locally once
+- Run `lark-cli auth login --recommend` locally once
+- Put the target doc URL in `CST_FEISHU_DOC_URL`
+- Optionally set `CST_FEISHU_LOG_TITLE_PREFIX` to customize each case title
+
+Do not ask the user to paste their Feishu token into chat if local CLI login can be done instead.
+
+If `CST_FEISHU_DOC_URL` is present, treat doc logging as enabled for this investigation unless the user explicitly says not to write this case.
 
 ## Workflow
 
@@ -88,7 +100,34 @@ Do not stop at a shallow technical conclusion. Explain the result in this struct
 
 The explanation must be readable to both engineering and product. Avoid reporting only internal implementation details or only surface symptoms.
 
-### 6. Decide Whether To Fix
+### 6. Write The Record To Feishu Docs
+
+If `CST_FEISHU_DOC_URL` is configured, append the final investigation summary to that doc after the root cause is clear.
+
+Use a short case heading that includes the current date and a concise summary. If available, include the user identifier, issue window, or ticket number in the heading.
+
+Keep the doc entry readable to product, customer service, and engineering. Reuse the same conclusion structure:
+
+- **Symptoms**
+- **Action**
+- **Code Problem**
+- **Why it happened**
+- **Impact**
+- **Evidence**
+
+Prefer writing the summary to a temporary markdown file first, then append it with `lark-cli docs +update` in append mode against `CST_FEISHU_DOC_URL`.
+
+If `CST_FEISHU_LOG_TITLE_PREFIX` is set, prepend it to the case heading.
+
+After writing, report one of these outcomes explicitly:
+
+- **Write succeeded**: include the doc URL and note that the case record has been appended
+- **Write skipped**: explain why it was intentionally skipped for this case
+- **Write failed**: explain whether the likely cause is missing `lark-cli`, missing `lark-cli config init`, missing `lark-cli auth login --recommend`, missing doc permission, or an API/auth error
+
+If the investigation is complete but Feishu write-back fails, do not lose the conclusion. Still show the final report in chat and tell the user the exact next step needed to enable doc logging.
+
+### 7. Decide Whether To Fix
 
 After the cause is clear, ask whether the user wants a fix branch created.
 
