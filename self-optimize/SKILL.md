@@ -1,15 +1,15 @@
 ---
 name: self-optimize
-description: Manage DailyHub skill lifecycle — create new skills, fix and improve existing ones.
+description: Create, fix, and optimize skills, including refactoring SKILL.md content to meet a consistent standard.
 ---
 
 # Self-Optimize Skill
 
-Enables DailyHub to self-improve by creating, fixing, and optimizing skills.
+Use this skill to improve skills themselves: create new ones, repair existing ones, and refine SKILL.md content so the whole skill set stays clear and maintainable.
 
 ## Goal
 
-When user asks to create a new skill or fix/improve an existing one, handle the full lifecycle: understand the need → implement → test → submit PR.
+When user asks to create a new skill or improve an existing one, handle the full lifecycle: understand the need → implement → test → submit PR. This includes tightening vague, outdated, or inconsistent SKILL.md files so the broader skill collection stays coherent.
 
 ---
 
