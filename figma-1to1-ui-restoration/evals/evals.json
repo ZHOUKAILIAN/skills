@@ -10,19 +10,55 @@
     {
       "id": 1,
       "prompt": "读取这个 Figma 节点 `150-27773`，并把下面所有子节点都读到最底层。我不要只看截图，要把字体大小、行高、间距、按钮尺寸、状态差异都列出来。确认读完整之后，再直接修改原来的粗版本代码。",
-      "expected_output": "应该先定义边界，完整读取目标范围内节点和状态，形成节点台账后再定位原实现并在原文件上修改，而不是一边读一边直接写代码。",
+      "expected_output": "应该先定义边界，完整读取目标范围内节点和状态，形成节点台账后再定位原实现并在原文件上修改，而不是一边读一边直接写代码。输出里应该明确哪些节点已经达到 terminal no-children 状态，哪些只是 shell，并避免只停留在 root screenshot 或 metadata 外框。",
       "files": []
     },
     {
       "id": 2,
       "prompt": "这是一个新的 Figma 组件，帮我 1 比 1 实现到 Vue 里。先把这个节点和它的所有状态、资产、变量读完整，再开始开发。",
-      "expected_output": "应该进入通用 Figma 还原流程，先读取根节点、子节点、状态、资产和变量，明确没有现有实现后再新建组件，并在开发前完成完整节点盘点。",
+      "expected_output": "应该进入通用 Figma 还原流程，先读取根节点、子节点、状态、资产和变量，明确没有现有实现后再新建组件，并在开发前完成完整节点盘点。不能把 spacing 当成 Figma 原生字段，而应基于 x、y、width、height 和节点关系推导布局语义。",
       "files": []
     },
     {
       "id": 3,
       "prompt": "这个页面不用整站都做，先把 Figma 里的报名模块、弹层和底部 CTA 这一段完整还原。现有页面已经有一个粗版本，按 Figma 精修，所有节点信息读完再开始改。",
-      "expected_output": "应该先定义模块边界，继续深读状态节点和实例内部结构，建立审计台账，再通过测试和原文件修改完成 1:1 收紧，最后给出验证结果。",
+      "expected_output": "应该先定义模块边界，继续深读状态节点和实例内部结构，建立审计台账，再通过测试和原文件修改完成 1:1 收紧，最后给出验证结果。输出应体现 derived spacing、top inset、bottom inset 和垂直闭环检查，而不是只描述左右对齐或大致间距。",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "这个弹层你不要只告诉我大概 padding，我要你把上下边距算清楚。Figma 里没有 margin 字段，你就根据节点坐标自己算。没有算出 top、bottom inset 和中间 gap 之前，不要开始写代码。",
+      "expected_output": "应该明确说明 Figma 常见情况下只有几何信息，没有直接的 margin 字段。应先基于容器与子节点的 x、y、width、height 推导 top inset、bottom inset、sibling gap，并给出至少一个垂直闭环公式。若闭环未完成，不应开始实现。",
+      "files": []
+    },
+    {
+      "id": 5,
+      "prompt": "我怀疑这个组件外层 frame 只是一个壳，你别只看边框。把真实可见子节点读出来，告诉我哪些节点只是 shell，哪些已经读到最底层。关键节点如果还没展开，不要说已经 1:1 了。",
+      "expected_output": "应该区分 shell node 和 terminal node，继续展开关键实例或 frame 的真实可见内部结构，并在输出中报告 boundary coverage、terminal coverage 与未展开节点。若关键节点仍是 unknown 或 shell，不应声称已经完成 1:1 还原。",
+      "files": []
+    },
+    {
+      "id": 6,
+      "prompt": "这次不要凭感觉停下来。只要边界里的任何节点在 metadata 里还有 child nodes，就继续往下读，直到没有子节点为止。没有达到这个条件，不要开始实现。",
+      "expected_output": "应该明确把 get_metadata 作为递归展开子节点的主要依据，并说明只要边界内节点仍有 child nodes，就必须继续读取。输出应体现 terminal coverage 或等价表述，只有在节点无子节点或明确排除出边界时才可停止。对于 instance 等 shell-capable 节点，不能只靠 metadata 无子节点就判定完成，还要补 design-context expansion。",
+      "files": []
+    },
+    {
+      "id": 7,
+      "prompt": "这次把审计文档落到 docs/analysis 里。只要 README.md 和 ALL_CHILD_NODES.md 还没通过你这个 skill 自带的校验，就不准开始写测试和代码。",
+      "expected_output": "应该说明如果生成了审计文档，就要先运行 skill 自带的 audit verifier 并把通过作为实现前置条件。若 verifier 失败，应把失败当成硬停止条件，而不是继续开始测试或实现。",
+      "files": []
+    },
+    {
+      "id": 8,
+      "prompt": "我希望这个模块做到接近 99% 的 Figma 还原。除了普通测试外，你还需要给我一套验证方法，证明结构、几何、状态和视觉都基本一致。不要只说看起来差不多。",
+      "expected_output": "应该提出多层验证合同，至少包含 structure check、geometry check、content check、visual diff check 和 state coverage check，并给出可度量阈值。若这些关卡未全部通过，不应直接声称接近 99% 还原。",
+      "files": []
+    },
+    {
+      "id": 9,
+      "prompt": "这个节点里有很多 instance。即使 get_metadata(instance) 看起来没有 children，也不要直接当作 terminal。你要继续验证实例内部有没有实现相关的真实结构，没验证完不要开始实现。",
+      "expected_output": "应该明确指出 instance 不能仅凭 metadata 无子节点就视为 terminal，需要额外使用 design context 做 shell expansion 检查。输出应说明 terminal 判定来自 metadata 加 shell expansion，而不是 metadata 单独成立。",
       "files": []
     }
   ]

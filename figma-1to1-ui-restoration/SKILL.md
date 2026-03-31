@@ -4,32 +4,147 @@ description: |
   Use when a user provides a Figma URL or node ID and wants an existing UI aligned or a new UI implemented with exact 1:1 fidelity, especially when they ask to read all child nodes, states, assets, and specs before coding. Applies to components, popups, pages, partial modules, and both new implementations and refinements of an existing rough implementation.
 ---
 
-# General Figma 1:1 Restoration Workflow
+# Figma 1:1 UI Restoration
 
 Treat this work as scoped design auditing plus implementation convergence, not as "look at a screenshot and recreate it from memory".
 
-Default goals:
+## Positioning
 
-1. Ensure Figma MCP is available
-2. Define the restoration boundary first
-3. Fully read every relevant node inside that boundary
-4. Find the existing implementation or decide the correct new entry point
-5. Only then write tests and production code
-6. Lock the result with verification
+This is the general orchestration skill for high-fidelity Figma restoration.
 
-## First Principle
+Use it to:
 
-**Before development starts, all relevant node information inside the target boundary must be read.**
+- define the boundary
+- decide whether the task is refinement or new implementation
+- decide which specialized audit skill must be invoked
+- collect audit artifacts, verification evidence, and implementation results into one traceable flow
 
-"All relevant nodes" includes:
+When a task clearly matches a specialized sub-skill, invoke that sub-skill as part of the workflow instead of keeping every concern inside this file:
 
-- The user-specified root node
-- All child nodes inside the current task boundary
-- Important state nodes
-- Visible real structure inside key instances
-- Assets, text, typography, colors, sizes, spacing, radius, and variables that affect implementation
+- Use `figma-shell-expansion-audit` when the boundary contains important `instance`, component shell, icon wrapper, or other metadata-insufficient nodes.
+- Use `figma-popup-sheet-restoration` when the boundary is a popup, modal, sheet, bottom sheet, or drawer-like container with overlay, header, content stack, and bottom action area.
 
-If the scope is too large, define the boundary first and then read everything inside that boundary. Do not start coding while still relying on guesses.
+## Goal
+
+Given a Figma node boundary, fully read the real visible structure inside that boundary, derive the layout semantics from geometry, then converge the existing or new implementation until it matches the audited structure exactly enough to be traceable and verifiable.
+
+## Success Criteria
+
+Do not claim exact restoration unless all of the following are true:
+
+1. The restoration boundary is explicit.
+2. The boundary ledger covers every relevant visible node inside scope.
+3. Every in-bound node is recursively expanded until it has no child nodes, instead of stopping at an instance shell, outer frame, or apparently complete visible layer.
+4. Spacing is expressed as derived layout values, not guessed CSS terms.
+5. Vertical spacing is closed mathematically:
+   - `top inset + internal gaps + content heights + bottom inset = container height`
+6. State differences are audited and translated into code branches where required.
+7. Tests and broader verification have both been run.
+
+If any item is missing, the audit is incomplete and implementation is not yet ready.
+
+## Core Terms
+
+Use these meanings consistently.
+
+- `boundary`: the exact subtree or module included in the task
+- `visible node`: a node that materially affects rendered output inside the boundary
+- `terminal node`: a node that has no remaining implementation-relevant internal structure after required metadata traversal and shell expansion checks
+- `shell node`: an outer frame, instance, or metadata wrapper whose internal visible structure still matters
+- `derived spacing`: a layout value inferred from geometry, not a native Figma field
+- `vertical closure check`: the accounting step that proves top inset, bottom inset, content heights, and internal gaps fully explain the container height
+- `boundary coverage`: whether all in-scope visible nodes have been accounted for
+- `terminal coverage`: whether every in-bound node has been expanded until there is no remaining implementation-relevant internal structure, unless that subtree is explicitly out of scope
+
+## Hard Gates
+
+These gates are mandatory.
+
+### Gate 1: No Figma MCP, no audit
+
+If Figma MCP is unavailable or unauthenticated, stop and provide setup instructions. Do not fabricate specs from screenshots, memory, or guesses.
+
+### Gate 2: No ledger, no implementation
+
+Do not write tests or production code until the node ledger is complete for the current boundary.
+
+### Gate 3: No shell-only reads
+
+Do not stop at the root screenshot, outer frame, or instance shell when the real visible structure is inside it.
+
+If a node is an instance, component set, shell frame, or metadata rectangle:
+
+- decide whether the visible implementation-critical structure is inside it
+- if yes, continue reading child structure until there are no child nodes left
+- record that the outer node was only a shell
+
+### Gate 3.5: No non-terminal nodes in scope
+
+Within the current boundary, keep reading until each node reaches a terminal state in metadata traversal.
+
+This means:
+
+- use `get_metadata` as the recursive source of truth for child expansion
+- if a node still has child nodes, it is not fully read yet
+- do not stop merely because the current level looks visually sufficient
+- only stop recursion when the node has no child nodes left, or the boundary explicitly excludes that subtree
+
+### Gate 3.6: Instance metadata is not completion proof
+
+Do not treat `instance` or other shell-capable nodes as terminal merely because `get_metadata(node)` shows no children.
+
+For nodes such as:
+
+- `instance`
+- component-like reusable shells
+- icon wrappers
+- slot-like wrapper nodes
+
+You must also inspect `get_design_context(node)` when the node affects implementation.
+
+If `get_design_context(node)` reveals internal structure, nested node ids, asset layers, text layers, or layout-critical descendants:
+
+- treat the node as a shell
+- record that metadata alone was insufficient
+- use the revealed structure in the audit
+
+Only mark such a node as terminal when both conditions are true:
+
+1. metadata traversal is exhausted for the current boundary
+2. design-context expansion did not reveal any additional implementation-relevant internal structure that remains unaudited
+
+### Gate 4: No guessed spacing
+
+Do not describe spacing as if Figma exposed `margin`, `padding`, or CSS `gap` directly.
+
+Instead:
+
+- read raw `x`, `y`, `width`, and `height`
+- derive layout semantics from node relationships
+- state which nodes were used for the derivation
+
+### Gate 5: No vertical closure, no 1:1 claim
+
+Do not claim exact restoration until top inset, bottom inset, content heights, and internal vertical gaps are accounted for with a closure equation.
+
+### Gate 6: No unresolved critical unknowns
+
+If a critical node is still marked `unknown`, `shell`, or unexpanded, do not start implementation. Either expand it or explicitly narrow the boundary first.
+
+## Failure Modes To Prevent
+
+Treat each item below as a concrete failure, not a style preference.
+
+- Reading only the root screenshot and then starting implementation
+- Recording only outer bounds while skipping the internal visible subtree
+- Stopping at a node that still has child nodes in metadata
+- Marking an instance as terminal only because metadata returned no children
+- Listing width and height but never deriving top inset or bottom inset
+- Computing only horizontal spacing while leaving vertical spacing implicit
+- Saying "padding is about 16" without naming the reference nodes and formula
+- Treating metadata bounds as the final shell when the real visible shell is inside the instance
+- Claiming "all child nodes were read" while important nodes remain `unknown` or unexpanded
+- Translating Figma directly into CSS terms without proving the geometry relationships first
 
 ## When To Use
 
@@ -38,7 +153,7 @@ If the scope is too large, define the boundary first and then read everything in
 - The user says there is already a rough version and wants it aligned to Figma
 - The user wants an existing page, popup, component, list, or card refined to match Figma exactly
 - The user wants a new component or page implemented from Figma
-- The user cares about font sizes, line heights, colors, padding, gaps, shell geometry, and state differences
+- The user cares about font sizes, line heights, colors, insets, derived gaps, shell geometry, and state differences
 - The user explicitly asks to read the full node information before development
 
 ## When Not To Use
@@ -86,9 +201,11 @@ At minimum, produce:
 
 1. A boundary definition
 2. A Figma audit
-3. Existing implementation location or new implementation entry point
-4. Test and code changes
-5. Verification results
+3. A derived spacing audit
+4. A verification plan
+5. Existing implementation location or new implementation entry point
+6. Test and code changes
+7. Verification results
 
 If the project allows analysis docs, prefer writing the audit into the project under `docs/analysis/`.
 
@@ -97,7 +214,8 @@ Suggested directory:
 ```text
 docs/analysis/YYYYMMDD-figma-node-<root-node>-audit/
 |- README.md
-`- ALL_CHILD_NODES.md
+|- ALL_CHILD_NODES.md
+`- VERIFICATION.md
 ```
 
 If you do not want to start from scratch every time, prefer the bundled templates:
@@ -105,7 +223,26 @@ If you do not want to start from scratch every time, prefer the bundled template
 ```text
 assets/templates/figma-audit-readme-template.md
 assets/templates/figma-all-child-nodes-template.md
+assets/templates/figma-verification-template.md
 ```
+
+## Programmatic Assets
+
+This skill includes reusable assets:
+
+- Templates in `assets/templates/`
+- Audit verifier in `scripts/verify_figma_audit.py`
+
+Read these assets and decide how to use them for the current task. Do not ignore them when the task needs audit artifacts or verification.
+
+## Sub-Skills
+
+This skill depends on:
+
+- `figma-shell-expansion-audit`
+- `figma-popup-sheet-restoration`
+
+Invoke them when their scope matches the task. Do not duplicate their detailed shell or popup-specific logic here when the specialized skill is clearly the right fit.
 
 ## Workflow
 
@@ -130,8 +267,6 @@ If any Figma MCP call fails because the server is missing or unauthenticated, st
 
 If setup is required, finish the answer with the setup instructions and tell the user to retry after restart. Do not pretend the audit already happened.
 
-**Hard rule: if Figma MCP is unavailable, do not fabricate node reads, specs, or audit results from screenshots or guesses.**
-
 ### 1. Define the restoration boundary first
 
 Before development, make the boundary explicit:
@@ -143,6 +278,8 @@ Before development, make the boundary explicit:
 - Is responsive or platform adaptation included?
 
 If the user says "read until node X" or "all child nodes under this node", record that as the boundary rule and use it for every later read and code decision.
+
+If the boundary is a popup, sheet, modal, drawer, or overlay module, invoke `figma-popup-sheet-restoration` before continuing the detailed audit.
 
 ### 2. Decide whether this is a refinement or a new implementation
 
@@ -168,6 +305,8 @@ Do not bypass the project's workflow.
 
 Before development begins, complete at least one full read pass.
 
+If the boundary contains shell-capable nodes that are likely to fool metadata traversal, invoke `figma-shell-expansion-audit` before declaring terminal coverage.
+
 Read in this order:
 
 1. `get_metadata(root)`
@@ -176,25 +315,74 @@ Read in this order:
 
 Then expand until all important nodes inside the boundary are covered:
 
+- Use `get_metadata` recursively to enumerate child nodes
 - Call `get_design_context` on important child nodes
 - Add `get_metadata(child)` where needed
 - Add `get_screenshot(child)` where local visual confirmation helps
 - Add `get_variable_defs` when variables or tokens matter
-- Read down to the deepest visible leaf level
-- Clearly mark which nodes are leaves, outer frames, or instance shells
+- Read recursively until each in-bound branch reaches nodes with no child nodes
+- For instance or shell-capable nodes, use `get_design_context` to verify whether metadata-only traversal is sufficient
+- Clearly mark which nodes are terminal, shell nodes, or intentionally out of scope
 
-**Hard rule: do not write production code until the boundary node inventory is complete.**
+The ledger is not complete until:
+
+- every critical visible node in the boundary has a status
+- every in-bound traversed node is either terminal or explicitly excluded by the boundary rule
+- important nodes are no longer ambiguous about whether they are shells or terminal descendants
+- shell-capable nodes are not marked terminal without a shell expansion check
+- unresolved nodes are either expanded or explicitly excluded by the boundary rule
 
 Do not stop at the root screenshot.
 
-### 5. Extract the right level of detail during the audit
+### 5. Derive spacing from geometry instead of inventing CSS terms
+
+Figma usually gives geometry, not implementation semantics.
+
+Always derive spacing from node relationships:
+
+- `top inset = first visible child.y - container.y`
+- `bottom inset = (container.y + container.height) - (last visible child.y + last visible child.height)`
+- `left inset = first visible child.x - container.x`
+- `right inset = (container.x + container.width) - (last visible child.x + last visible child.width)`
+- `sibling vertical gap = next.y - (current.y + current.height)`
+- `sibling horizontal gap = next.x - (current.x + current.width)`
+
+When using any derived value:
+
+- name the container node
+- name the reference child or sibling nodes
+- write the formula in audit language
+- separate raw geometry from the derived semantic label
+
+Do not write "margin is 16" unless you have first shown which nodes produce that `16`.
+
+### 6. Perform a vertical closure check
+
+At least once for each major container, prove that the vertical structure closes.
+
+Required accounting:
+
+- top inset
+- every visible child height in the main stack
+- every internal vertical gap
+- bottom inset
+- container height
+
+Required conclusion:
+
+- the numbers either close exactly
+- or you state the mismatch and keep reading because the audit is not complete yet
+
+If the numbers do not close, do not start implementation.
+
+### 7. Extract the right level of detail during the audit
 
 Always try to capture:
 
 - Root geometry and position
 - Key child structure map
-- Vertical rhythm
-- Horizontal insets
+- Vertical rhythm expressed as derived values
+- Horizontal insets expressed as derived values
 - Typography: size, line height, weight, tracking, color
 - Icon sizes
 - Button sizes, radius, and colors
@@ -217,7 +405,7 @@ Pay special attention to misleading outer bounds, for example:
 
 In cases like that, implementation should follow the real internal structure, not the metadata rectangle alone.
 
-### 6. Build a dedicated state matrix
+### 8. Build a dedicated state matrix
 
 A single screenshot summary is not enough.
 
@@ -241,7 +429,7 @@ Recommended format:
 | disabled | ... | ... | yes |
 ```
 
-### 7. Audit document structure
+### 9. Audit document structure
 
 `README.md` should usually include:
 
@@ -251,7 +439,10 @@ Recommended format:
 - Quick Facts
 - Structure Map
 - Root Geometry
-- Vertical Rhythm
+- Derived Spacing
+- Vertical Closure Check
+- Shell vs Real Visible Bounds
+- Unexpanded Nodes
 - State Matrix
 - Asset Inventory
 - Detailed Read
@@ -266,11 +457,19 @@ Prefer starting from `assets/templates/figma-audit-readme-template.md`.
 - Name
 - Relative x/y
 - Width / height
+- Depth
+- Status
+- Whether it was expanded
+- Expansion basis
+- Why it was not expanded, if not
+- Completion proof
 - Notes
 
 Prefer starting from `assets/templates/figma-all-child-nodes-template.md`.
 
-### 8. Choose between refining the original implementation and building fresh
+If audit files were written, validate them with the bundled verifier before implementation. If validation fails, the audit is still incomplete.
+
+### 10. Choose between refining the original implementation and building fresh
 
 There are two modes:
 
@@ -288,7 +487,73 @@ If no implementation exists:
 - Create the new component or page
 - But still complete the node ledger before coding
 
-### 9. Translate Figma numbers into project conventions
+### 10.5. Enforce the audit contract before implementation
+
+If the task produced `README.md` and `ALL_CHILD_NODES.md` audit files:
+
+- run the bundled verifier against those files
+- treat any verifier failure as a hard stop
+- do not begin tests or production code until the verifier passes
+
+The verifier is meant to enforce engineering gates, not just narrative reminders.
+
+### 10.6. Define the verification contract before claiming fidelity
+
+Do not treat a single test type as proof of 1:1 restoration.
+
+For high-confidence restoration, verify through multiple independent signals:
+
+1. `structure check`
+   - the audited boundary and terminal coverage are complete
+   - shell nodes and excluded subtrees are explicitly accounted for
+2. `geometry check`
+   - key dimensions, insets, gaps, and alignment points are asserted from rendered output
+   - use strict tolerances, usually `0px` when the platform allows it and at most `1px` when rendering differences are known
+3. `content check`
+   - text, typography, icon presence, asset wiring, and state branches match the audit
+4. `visual diff check`
+   - compare the implementation screenshot against the Figma screenshot at the same viewport, scale, and state
+   - do not compare different crop regions or mismatched device scales
+5. `state coverage check`
+   - every in-scope Figma state has a matching implementation state and verification result
+
+If one of these signals is missing, do not describe the result as `99% restored`.
+
+### 10.7. Use visual regression as the final confidence layer
+
+Visual regression is the last gate, not the first one.
+
+Before visual diffing:
+
+- lock viewport size
+- lock device scale if the toolchain exposes it
+- lock font loading and wait for the settled state
+- lock the exact state and boundary crop
+- remove or freeze dynamic data where possible
+
+When reporting the result:
+
+- state which screenshot was compared to which Figma node
+- state the compared state name
+- state the crop or viewport rule
+- state the diff result in a measurable way
+- call out any intentionally ignored regions
+
+Do not use "looks close" as a verification result.
+
+### 10.8. Use acceptance thresholds, not vague confidence
+
+Prefer measurable gates such as:
+
+- terminal coverage: `100%`
+- vertical closure: `pass`
+- key geometry tolerance: `<= 1px`
+- required state coverage: `100%`
+- visual diff status: `pass`
+
+If a threshold is not met, report the failure directly. Do not soften it into "mostly restored".
+
+### 11. Translate Figma numbers into project conventions
 
 Do not copy values blindly.
 
@@ -299,7 +564,7 @@ Check the project's measurement system first:
 
 If the file already uses `rpx`, translate using the project's established scale. If the file follows a different unit convention, stay consistent with that file.
 
-### 10. Confirm assets and dependencies before coding
+### 12. Confirm assets and dependencies before coding
 
 If the restoration includes:
 
@@ -317,7 +582,7 @@ Confirm first whether you should:
 
 Do not ship a placeholder asset implementation while pretending the design is fully restored.
 
-### 11. Use TDD for implementation
+### 13. Use TDD for implementation
 
 Whenever code changes are needed:
 
@@ -329,14 +594,16 @@ Whenever code changes are needed:
 
 The key is not "tests were written". The key is "the new checks were seen failing first, then passing".
 
-### 12. What to test
+### 14. What to test
 
 Prefer tests that lock down Figma geometry and state details:
 
 - Header height and typography
 - Close button size
 - Double-shell card geometry
-- Gap, padding, and insets
+- Top inset and bottom inset
+- Internal vertical gaps
+- Horizontal insets
 - CTA width and height
 - State styling
 - Real divider structure
@@ -345,7 +612,7 @@ Prefer tests that lock down Figma geometry and state details:
 
 Include node IDs in test names when practical for easier traceability.
 
-### 13. Code change principles
+### 15. Code change principles
 
 - Prefer editing the original implementation rather than creating a parallel one
 - Preserve existing business logic whenever possible
@@ -353,12 +620,19 @@ Include node IDs in test names when practical for easier traceability.
 - Use precise patches instead of rewriting entire files casually
 - If the current code is just a rough version, continue tightening that exact implementation
 
-### 14. Final verification
+### 16. Final verification
 
 Always do at least two layers:
 
 1. Targeted tests
 2. A build or broader project verification command
+
+For exact restoration work, prefer at least four layers:
+
+1. Audit contract verifier
+2. Geometry and content assertions
+3. Visual diff for each important state
+4. Build or broader project verification command
 
 If `npm` or `node` is not on the default PATH:
 
@@ -367,7 +641,7 @@ If `npm` or `node` is not on the default PATH:
 
 Do not skip verification just because the environment PATH is odd.
 
-### 15. Visual final pass
+### 17. Visual final pass
 
 When time allows, do one final visual check:
 
@@ -375,28 +649,40 @@ When time allows, do one final visual check:
 - Check small rhythm details, not only major blocks
 - Check state switching
 - Check scroll areas, safe areas, and popup shells
+- Recheck top and bottom spacing, not just left and right alignment
 
 ## Suggested Response Structure
 
 When reporting results, cover:
 
 1. What the restoration boundary was
-2. Which nodes were read and whether they reached leaf level
-3. Where the original implementation lives, or whether a new implementation was created
-4. Which states are now covered
-5. Which geometry, typography, state, and asset details changed
-6. Which verification commands were run and what happened
-7. Any remaining visual risk not yet covered
+2. Which nodes were read and whether they reached terminal no-children state
+3. Whether any shell nodes required deeper expansion
+4. How derived spacing was computed
+5. Whether the vertical closure check passed
+6. Where the original implementation lives, or whether a new implementation was created
+7. Which states are now covered
+8. Which geometry, typography, state, and asset details changed
+9. Which verification commands were run and what happened
+10. Any remaining visual risk not yet covered
+11. Whether the work met the threshold for `99% restored`
+
+If implementation did not start because the audit contract is incomplete, say that explicitly instead of softening the failure.
 
 ## Practical Reminders
 
 - If Figma MCP is missing or login has expired, stop after the setup instructions and tell the user to retry after restart
-- If the user asks "did you read to the deepest layer?", answer in terms of boundary coverage and leaf-node coverage, not vague reassurance
+- If the user asks "did you read to the deepest layer?", answer in terms of boundary coverage and terminal coverage, not vague reassurance
+- If the user asks for full child coverage, report whether every in-bound node reached a terminal no-children state
+- If shell-capable nodes were present, report whether terminal status came from metadata only or from metadata plus design-context expansion
 - If the user asks whether typography can be read, answer specifically: size, line height, weight, color, tracking, and related text specs
 - If the user says "read all nodes before development", treat that as a strict gate
 - If a rough implementation already exists, do not default to building a second version
 - For complex pages, do not stop at the root node; expand important states and instance internals
-- The value of 1:1 restoration is auditability, so always leave a traceable ledger and verification trail
+- If any in-bound node still has child nodes in metadata, keep reading
+- If a shell-capable node shows no children in metadata, verify it with design context before calling it terminal
+- If Figma does not expose a direct spacing field, derive it from geometry and record the formula
+- The value of 1:1 restoration is auditability, so always leave a traceable ledger, spacing derivation trail, and verification trail
 
 ## Example Tasks
 
