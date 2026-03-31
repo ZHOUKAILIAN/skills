@@ -67,6 +67,41 @@ flowchart TD
 - {{inset_2}}
 - {{inset_3}}
 
+## Derived Spacing
+
+| Semantic value | Formula | Result | Reference nodes |
+| --- | --- | --- | --- |
+| Top inset | `{{top_inset_formula}}` | `{{top_inset_value}}` | `{{top_inset_nodes}}` |
+| Bottom inset | `{{bottom_inset_formula}}` | `{{bottom_inset_value}}` | `{{bottom_inset_nodes}}` |
+| Main vertical gap | `{{main_gap_formula}}` | `{{main_gap_value}}` | `{{main_gap_nodes}}` |
+| Main horizontal inset | `{{main_horizontal_formula}}` | `{{main_horizontal_value}}` | `{{main_horizontal_nodes}}` |
+
+## Vertical Closure Check
+
+| Item | Value |
+| --- | --- |
+| Container height | `{{closure_container_height}}` |
+| Top inset | `{{closure_top_inset}}` |
+| Content heights total | `{{closure_content_total}}` |
+| Internal vertical gaps total | `{{closure_gap_total}}` |
+| Bottom inset | `{{closure_bottom_inset}}` |
+| Closure formula | `{{closure_formula}}` |
+| Closure result | `{{closure_result}}` |
+
+## Shell vs Real Visible Bounds
+
+| Node | Metadata bounds | Real visible bounds | Conclusion |
+| --- | --- | --- | --- |
+| `{{shell_node_1}}` | `{{shell_metadata_1}}` | `{{shell_visible_1}}` | {{shell_conclusion_1}} |
+| `{{shell_node_2}}` | `{{shell_metadata_2}}` | `{{shell_visible_2}}` | {{shell_conclusion_2}} |
+
+## Unexpanded Nodes
+
+| Node | Reason not expanded | Safe to continue |
+| --- | --- | --- |
+| `{{unexpanded_node_1}}` | {{unexpanded_reason_1}} | {{unexpanded_safe_1}} |
+| `{{unexpanded_node_2}}` | {{unexpanded_reason_2}} | {{unexpanded_safe_2}} |
+
 ## State Matrix
 
 | State | Node | Key differences | Must change in code |
@@ -104,6 +139,8 @@ flowchart TD
 ## Current Read Outcome
 
 - Boundary coverage: {{boundary_coverage}}
-- Leaf-node coverage: {{leaf_coverage}}
+- Terminal-node coverage: {{terminal_coverage}}
+- Derived spacing coverage: {{spacing_coverage}}
+- Vertical closure: {{vertical_closure_status}}
 - Remaining uncertainty: {{remaining_uncertainty}}
 - Ready for implementation: {{implementation_ready}}

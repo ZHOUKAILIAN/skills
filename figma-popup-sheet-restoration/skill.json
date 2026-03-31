@@ -1,0 +1,7 @@
+{
+  "name": "figma-popup-sheet-restoration",
+  "description": "Restore popup, modal, and sheet-style Figma modules with strict shell, spacing, state, and safe-area auditing.",
+  "sub_skills": [
+    "figma-shell-expansion-audit"
+  ]
+}
