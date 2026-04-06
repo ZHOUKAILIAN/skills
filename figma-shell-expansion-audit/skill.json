@@ -1,5 +1,0 @@
-{
-  "name": "figma-shell-expansion-audit",
-  "description": "Expand instance and shell-capable Figma nodes until terminal status is supported by metadata plus design-context evidence.",
-  "sub_skills": []
-}

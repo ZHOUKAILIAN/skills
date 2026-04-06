@@ -1,8 +1,5 @@
 {
   "name": "figma-1to1-ui-restoration",
   "description": "Restore Figma UI with strict boundary audit, terminal child-node traversal, derived spacing checks, and multi-layer verification before claiming high-fidelity implementation.",
-  "sub_skills": [
-    "figma-shell-expansion-audit",
-    "figma-popup-sheet-restoration"
-  ]
+  "sub_skills": []
 }
