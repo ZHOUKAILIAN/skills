@@ -1,0 +1,5 @@
+{
+  "name": "figma-restoration-review",
+  "description": "Review existing UI implementation against Figma design for restoration fidelity. Outputs a structured deviation checklist without modifying code.",
+  "sub_skills": []
+}
