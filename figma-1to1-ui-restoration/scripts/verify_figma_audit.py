@@ -9,10 +9,14 @@ from pathlib import Path
 
 
 README_REQUIRED_HEADINGS = [
+    "## Boundary and Scope",
+    "## Node Classification and Handling",
     "## Derived Spacing",
     "## Vertical Closure Check",
+    "## State Matrix",
     "## Shell vs Real Visible Bounds",
     "## Unexpanded Nodes",
+    "## Verification Summary",
     "## Current Read Outcome",
 ]
 
@@ -21,6 +25,9 @@ README_REQUIRED_OUTCOME_KEYS = [
     "Terminal-node coverage:",
     "Derived spacing coverage:",
     "Vertical closure:",
+    "State-matrix coverage:",
+    "Non-renderable review:",
+    "Critical unknowns:",
     "Ready for implementation:",
 ]
 
@@ -79,9 +86,15 @@ def validate_readme(readme_text: str) -> list[str]:
     terminal_coverage = parse_outcome_value(readme_text, "Terminal-node coverage:")
     vertical_closure = parse_outcome_value(readme_text, "Vertical closure:")
     implementation_ready = parse_outcome_value(readme_text, "Ready for implementation:")
+    state_coverage = parse_outcome_value(readme_text, "State-matrix coverage:")
+    non_renderable_review = parse_outcome_value(readme_text, "Non-renderable review:")
+    critical_unknowns = parse_outcome_value(readme_text, "Critical unknowns:")
 
     require(terminal_coverage is not None, "README is missing terminal coverage value", errors)
     require(vertical_closure is not None, "README is missing vertical closure value", errors)
+    require(state_coverage is not None, "README is missing state-matrix coverage value", errors)
+    require(non_renderable_review is not None, "README is missing non-renderable review value", errors)
+    require(critical_unknowns is not None, "README is missing critical unknowns value", errors)
     require(implementation_ready is not None, "README is missing implementation readiness value", errors)
 
     if implementation_ready and implementation_ready.lower() in {"yes", "true", "ready"}:
@@ -93,6 +106,21 @@ def validate_readme(readme_text: str) -> list[str]:
         require(
             vertical_closure is not None and vertical_closure.lower() in {"pass", "passed", "yes", "closed"},
             "README cannot mark implementation ready unless vertical closure passed",
+            errors,
+        )
+        require(
+            state_coverage is not None and state_coverage.lower() in {"100%", "yes", "complete", "all states covered"},
+            "README cannot mark implementation ready unless state-matrix coverage is complete",
+            errors,
+        )
+        require(
+            non_renderable_review is not None and non_renderable_review.lower() in {"100%", "yes", "complete", "all reviewed"},
+            "README cannot mark implementation ready unless non-renderable nodes are reviewed",
+            errors,
+        )
+        require(
+            critical_unknowns is not None and critical_unknowns.lower() in {"none", "no", "0", "zero"},
+            "README cannot mark implementation ready unless critical unknowns are cleared",
             errors,
         )
 
