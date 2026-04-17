@@ -1,0 +1,4 @@
+{
+  "name": "ai-doc-driven-dev",
+  "description": "Use when a project needs docs-first workflow setup or repair, documentation drift review, requirement/design generation, or bug and follow-up changes that must be routed back into existing feature documentation."
+}
