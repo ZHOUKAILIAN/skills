@@ -71,6 +71,11 @@
   - 通用 Figma 还原工作流
   - 先读完整个目标范围内节点、状态、资产和变量，再开始开发
   - 同时覆盖“从零实现”和“在原有粗版本上收紧”两类任务
+- `ai-doc-driven-dev`
+  - 单入口的文档驱动开发 workflow
+  - 从旧 `claude-community-plugins/plugins/ai-doc-driven-dev` 迁移而来
+  - 内部包含文档检测、文档生成、工作流约束和代码模式提取几个阶段，但对外只暴露一个 skill
+  - 新增核心门禁：bug、回归、优化、后续变更必须先路由到已有需求/技术方案；能归属原需求时更新原文档，不默认新建 bug 文档
 - `self-optimize`
   - 用来优化 skill 本身，是一个面向所有 skill 的 skill
   - 适合新增 skill、修复已有 skill，或统一收敛不符合规范的 SKILL.md

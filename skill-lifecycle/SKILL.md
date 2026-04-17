@@ -1,6 +1,6 @@
 ---
 name: skill-lifecycle
-description: Full lifecycle management for skills: create new skills, fix and improve existing ones, and submit changes via PR.
+description: "Full lifecycle management for skills: create new skills, fix and improve existing ones, and submit changes via PR."
 ---
 
 # Skill Lifecycle
