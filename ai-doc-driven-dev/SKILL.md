@@ -1,7 +1,7 @@
 ---
 name: ai-doc-driven-dev
 description: |
-  Use when a project needs docs-first workflow setup or repair, documentation drift review, requirement/design generation, or bug and follow-up changes that must be routed back into existing feature documentation.
+  Use when a project needs docs-first workflow setup or repair, documentation drift review, canonical requirement/design updates, requirement/design generation, or bug and follow-up changes that must be routed back into existing feature documentation.
 ---
 
 # AI Documentation-Driven Development
@@ -19,8 +19,9 @@ Do not create a new document just because the current work item is a bug or smal
 1. Establish a docs-first workflow in project instruction files.
 2. Detect whether the current docs are complete and paired.
 3. Extract project-specific coding and architecture standards from real code.
-4. Generate or update requirement/design documents that remain canonical over time.
-5. Prevent documentation fragmentation by routing follow-up work to the original docs.
+4. Update canonical requirement/design and workflow documents in place when they already exist.
+5. Generate requirement/design documents only when no existing owner can reasonably own the work.
+6. Prevent documentation fragmentation by routing follow-up work to the original docs.
 
 ## Available Assets
 
@@ -60,13 +61,14 @@ Run this gate before generating or modifying docs:
 
 ## Workflow Surface
 
-This single skill covers five concerns:
+This single skill covers six concerns:
 
 1. Documentation routing
 2. Documentation analysis
-3. Requirement and technical design generation or update
-4. Workflow enforcement in project instruction files
-5. Pattern extraction for the project's standards docs
+3. Canonical update of existing requirement/design and workflow artifacts
+4. Requirement and technical design generation when no owner exists
+5. Workflow enforcement in project instruction files
+6. Pattern extraction for the project's standards docs
 
 ## Documentation Analysis
 
@@ -80,6 +82,7 @@ Common candidates include:
 - analysis or investigation docs
 - workflow instruction files such as `CLAUDE.md`, `AGENTS.md`, or `GEMINI.md`
 - README files that define workflow or feature scope
+- requirement and design templates that shape future doc creation behavior
 
 Classify requirement/design pairs, naming drift, missing pairs, contradictory docs, and possible owners for the current work item.
 
@@ -113,6 +116,24 @@ Use those filenames only when the project follows this skill's bundled conventio
 
 Same-day suffixes such as `-v2` solve filename conflicts only. They are not a substitute for updating an existing feature document.
 
+## Update Capability
+
+Use the update capability when the project already has canonical artifacts and the task is to revise them rather than open parallel docs.
+
+Common update requests include:
+
+- update, revise, refresh, amend, or sync an existing requirement/design pair
+- fold a bug fix, regression, or follow-up into the original feature docs
+- update workflow entry files, README files, templates, or standards docs after process drift
+- bring implementation-facing docs back in sync after clarified scope or approved design changes
+
+For update requests:
+
+- Prefer modifying the existing canonical files in place.
+- Update every workflow surface that teaches the same rule when those surfaces are in scope.
+- State which files were updated and which related canonical files were intentionally left unchanged.
+- Do not create replacement docs, override docs, or standalone bugfix docs just because the user asked to "update" something.
+
 ## Workflow Enforcement
 
 When the project lacks clear rules, create or repair workflow entry files so they enforce:
@@ -120,10 +141,13 @@ When the project lacks clear rules, create or repair workflow entry files so the
 - Documentation routing before new docs are created
 - Requirement/design pairing
 - User approval before implementation
+- Alignment across active workflow surfaces so README files, templates, and instruction files do not contradict each other
 - Separation of responsibilities
   - `CLAUDE.md`: lightweight workflow entry and navigation when the project uses that file
   - `AGENTS.md`: AI execution rules and guardrails when the project uses that file
   - standards docs: detailed coding, testing, and architecture guidance in the project's chosen standards location
+  - README or docs overview files: contributor-facing workflow summaries when they influence how work is started
+  - requirement/design templates: defaults for future canonical docs so bug fixes do not reopen the fragmentation pattern
 
 Preserve project-specific instruction content. Do not rewrite or move existing instruction files without user approval when the change is substantive.
 
@@ -148,6 +172,8 @@ Treat bundled pattern JSON files as hints for what to inspect, not as project st
 - initialize docs-first development in a new repo
 - repair or modernize an existing docs-first setup
 - decide whether a bug belongs to an existing requirement
+- update an existing requirement/design pair after clarified scope, regression, or follow-up work
+- update README files, templates, or workflow entry files so future runs follow the corrected process
 - update the canonical requirement/design pair for a regression or optimization
 - generate a missing requirement/design pair
 - extract standards into the project's standards docs
@@ -158,7 +184,8 @@ After analysis, narrow the task to one active mode:
 
 - routing-only review
 - documentation drift analysis
-- requirement/design update or generation
+- canonical update
+- requirement/design generation
 - workflow enforcement
 - pattern extraction
 
@@ -176,14 +203,20 @@ The task is complete only when the active mode's completion checks are satisfied
   - Relevant documentation and instruction locations have been checked.
   - Missing pairs, naming drift, or contradictions are identified.
   - The result lists the highest-priority fixes without inventing new docs.
-- Requirement/design update or generation:
-  - The change has been routed to an existing requirement/design pair or explicitly classified as a new pair.
-  - Requirement and technical design documents are synchronized when both are in scope.
-  - The result states which docs were updated, created, skipped, or left for user decision.
+- Canonical update:
+  - The change has been routed to existing canonical files in the detected project locations.
+  - Existing requirement/design docs, workflow files, README files, templates, or standards docs in scope have been updated in place.
+  - Requirement and technical design documents are synchronized when both exist or when a missing paired doc had to be created.
+  - The result states which canonical files were updated, which missing paired files were created, and which related files were intentionally left unchanged.
+- Requirement/design generation:
+  - No existing canonical owner reasonably owns the work, or the user explicitly approved creating a new pair.
+  - The new requirement/design pair uses the project's existing naming and location rules, or an approved bundled default.
+  - The result states why generation was chosen instead of updating an existing canonical file.
 - Workflow enforcement:
-  - The project's workflow entry files and standards locations have been identified.
+  - The project's workflow entry files, workflow-facing README files, templates, and standards locations have been identified.
   - Proposed or applied workflow rules include the routing gate before new docs are created.
-  - The result states which instruction files were updated, created, preserved, or left for approval.
+  - Conflicting workflow surfaces have been aligned or explicitly left unchanged by user decision.
+  - The result states which instruction files, overview files, and templates were updated, created, preserved, or left for approval.
 - Pattern extraction:
   - Standards are derived from evidence in the actual project.
   - Dominant conventions and important exceptions are separated.
