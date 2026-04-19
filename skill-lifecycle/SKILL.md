@@ -5,7 +5,7 @@ description: "Full lifecycle management for skills: create new skills, fix and i
 
 # Skill Lifecycle
 
-Use this skill to manage the full lifecycle of a skill: create, fix, improve, and ship via PR. For writing standards and quality criteria, refer to the `self-optimize` skill.
+Use this skill to manage the full lifecycle of a skill: create, fix, improve, and ship via PR. For writing standards and quality criteria, refer to the `skill-standard` skill.
 
 ---
 
@@ -21,7 +21,7 @@ Use this skill to manage the full lifecycle of a skill: create, fix, improve, an
 
 1. **Understand intent first**: Ask 2-3 clarifying questions, then restate the user's idea back to them in your own words. Get explicit confirmation before proceeding.
 2. Scaffold the skill directory with `SKILL.md` + `skill.json`
-3. Write the SKILL.md following the **Skill Writing Standard** in `self-optimize`
+3. Write the SKILL.md following the **Skill Writing Standard** in `skill-standard`
 4. Implement code if needed (in a `src/` or `scripts/` directory within the skill)
 5. Register in `daily/skill/SKILL.md` if it's a scheduled task
 6. Test and create PR
@@ -37,7 +37,7 @@ Use this skill to manage the full lifecycle of a skill: create, fix, improve, an
 3. Read the skill's SKILL.md and implementation code to understand current behavior
 4. Diagnose the issue
 5. Fix code and/or update SKILL.md
-6. If the SKILL.md violates the **Skill Writing Standard** in `self-optimize`, refactor it as part of the fix
+6. If the SKILL.md violates the **Skill Writing Standard** in `skill-standard`, refactor it as part of the fix
 7. Test and create PR
 
 ---

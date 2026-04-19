@@ -59,6 +59,12 @@
 
 ## 已沉淀
 
+- `ai-doc-driven-dev`
+  - 单入口的文档驱动开发 workflow
+  - 从旧 `claude-community-plugins/plugins/ai-doc-driven-dev` 迁移而来
+  - 覆盖文档路由、文档检测、需求/技术方案生成或更新、工作流约束和模式提取
+  - 核心门禁：bug、回归、优化、后续变更先路由到已有需求/技术方案；能归属原需求时更新原文档，不默认新建 bug 文档
+  - 自带 requirement / technical design / CLAUDE.md / AGENTS.md 模板，以及前后端 pattern hints
 - `cst`
   - 客诉 / 客服问题排查工作流
   - 先和用户对齐现象，再优先按环境变量里配置好的日志方式查日志、分别看前端和后端代码、查 MySQL、定位根因
@@ -67,16 +73,24 @@
   - 结论输出顺序固定为：现象 -> 动作 -> 代码问题，并且要让产品和研发都能看懂
   - 如果配置了 `CST_FEISHU_DOC_URL` 并完成 `lark-cli init`，排查结论还能自动追加到飞书文档里
   - 根因清楚后，再决定要不要进入修复分支
+- `e2e-coverage-guard`
+  - 根据飞书 Base 或 Doc 里的变更记录检查 E2E 覆盖
+  - 以用户旅程为单位映射 bug、需求、优化和功能变更，而不是一个 bug 一个测试
+  - 只生成或补齐 E2E 测试用例，不运行测试、不修业务代码
 - `figma-1to1-ui-restoration`
-  - 通用 Figma 还原工作流
-  - 先读完整个目标范围内节点、状态、资产和变量，再开始开发
-  - 同时覆盖“从零实现”和“在原有粗版本上收紧”两类任务
-- `ai-doc-driven-dev`
-  - 单入口的文档驱动开发 workflow
-  - 从旧 `claude-community-plugins/plugins/ai-doc-driven-dev` 迁移而来
-  - 内部包含文档检测、文档生成、工作流约束和代码模式提取几个阶段，但对外只暴露一个 skill
-  - 新增核心门禁：bug、回归、优化、后续变更必须先路由到已有需求/技术方案；能归属原需求时更新原文档，不默认新建 bug 文档
-- `self-optimize`
-  - 用来优化 skill 本身，是一个面向所有 skill 的 skill
-  - 适合新增 skill、修复已有 skill，或统一收敛不符合规范的 SKILL.md
-  - 强调 skill 文案要语义明确、目标导向、路径可移植，并且依赖要按 skill 名声明
+  - Figma 1:1 UI 还原工作流
+  - 先锁定边界，完整遍历可见节点、状态、资产和变量，再开始实现或收紧已有实现
+  - 强制区分真实可渲染节点、平台原生节点、交互代理节点和注释/演示节点
+  - 通过结构、几何、内容、视觉 diff 和状态覆盖多层验证后，才能宣称 1:1
+- `figma-restoration-review`
+  - 只读审查已有 UI 实现相对 Figma 的还原质量
+  - 输出按严重程度排序的 deviation checklist，不修改代码
+  - 覆盖结构、几何、样式、内容和状态五个维度
+- `skill-lifecycle`
+  - 管理 skill 的完整生命周期：新增、修复、改进和通过 PR 交付
+  - 创建或修改 skill 时配合 `skill-standard` 使用
+  - 强调先明确意图，再脚手架、编写、验证和提交 PR
+- `skill-standard`
+  - SKILL.md 编写和审查标准
+  - 约束语义清晰、目标导向、资产说明、路径可移植、依赖声明和完成信号
+  - 用来审查或收敛其他 skill 的质量
