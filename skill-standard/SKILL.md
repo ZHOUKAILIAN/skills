@@ -1,6 +1,6 @@
 ---
 name: skill-standard
-description: The authoritative quality standard for writing SKILL.md files. Use this to evaluate, audit, or improve any skill's content.
+description: Use when evaluating, auditing, or improving SKILL.md content against the repository's skill authoring standard.
 ---
 
 # Skill Standard

@@ -1,4 +1,4 @@
 {
   "name": "e2e-coverage-guard",
-  "description": "Read change records (bugs, features, requirements) from Feishu Base or Feishu Doc via lark-cli, check existing E2E coverage, and generate missing E2E test cases. Applies to any code change."
+  "description": "Use when the user provides a Feishu link (Base table or Doc) with bugs, features, requirements, or optimizations and wants E2E coverage checked or filled for affected user journeys."
 }

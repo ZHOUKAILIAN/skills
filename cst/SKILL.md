@@ -1,7 +1,7 @@
 ---
 name: cst
 description: |
-  Use when investigating a customer service issue that requires aligning on the observed symptoms first, checking the relevant logs the user provides access to, reading the relevant frontend and backend code, verifying MySQL data, identifying the real root cause, explaining both symptoms and the underlying problem in language product and engineering can both understand, and optionally appending the final investigation summary to a Feishu doc through lark-cli.
+  Use when investigating a customer service issue that requires symptom alignment, evidence from logs, frontend/backend code, MySQL data, root-cause explanation for product and engineering, or optional Feishu investigation logging.
 ---
 
 # Customer Service Troubleshooting (CST)
@@ -18,7 +18,7 @@ If the relevant environment variables are already present, confirm they are the 
 
 If required values are missing, ask for the frontend code location, the backend code location, mysql host/user/password, the log-query method the user already uses, and any log-related connection details or credentials required to use it.
 
-Create or update `config.env`, write both database and log-related environment variables into it, and ask user to `export $(cat config.env | grep -v '^#' | xargs)`.
+Create or update a local `config.env` in the investigation workspace, write both database and log-related environment variables into it, and ask the user to export those values into the shell before continuing. Do not commit local credentials.
 
 If the chosen log access method needs credentials, endpoints, project names, logstore names, cluster context, tokens, or other connection details, put them in `config.env` with clear variable names before querying logs.
 
@@ -42,6 +42,11 @@ If the team wants every finished investigation written to Feishu Docs, prefer th
 Do not ask the user to paste their Feishu token into chat if local CLI login can be done instead.
 
 If `CST_FEISHU_DOC_URL` is present, treat doc logging as enabled for this investigation unless the user explicitly says not to write this case.
+
+## Available Assets
+
+- `config.env.example`: a reference for environment variables used to configure code locations, database access, log access, and optional Feishu doc logging.
+- `assets/templates/feishu-investigation-log-template.md`: a report skeleton for the final investigation summary before appending it to Feishu.
 
 ## Workflow
 
@@ -67,23 +72,23 @@ If multiple log sources are available, ask the user which one is most relevant o
 
 Do not assume frontend and backend code live in the same place.
 
-If frontend and backend are in different repositories, keep them in separate working directories such as `/tmp/cst-frontend-repo/` and `/tmp/cst-backend-repo/`.
+Treat frontend and backend as separate code locations even when they are in the same repository.
 
-If they are in the same repository, still treat them as different code locations and use separate path hints such as `CST_FRONTEND_CODE_PATH` and `CST_BACKEND_CODE_PATH`.
+If `CST_FRONTEND_CODE_PATH` or `CST_BACKEND_CODE_PATH` is set, use those paths as the authoritative local source locations for this investigation.
 
-Frontend repo: if `CST_FRONTEND_GIT_REPO` is set and `/tmp/cst-frontend-repo/` exists, `cd /tmp/cst-frontend-repo && git checkout master && git pull origin master`. If it is set and the directory does not exist, `git clone "$CST_FRONTEND_GIT_REPO" /tmp/cst-frontend-repo`
+If only repository URLs are configured, create or refresh local working copies in locations appropriate for the current environment. Do not assume fixed temporary directories or a universal default branch.
 
-Backend repo: if `CST_BACKEND_GIT_REPO` is set and `/tmp/cst-backend-repo/` exists, `cd /tmp/cst-backend-repo && git checkout master && git pull origin master`. If it is set and the directory does not exist, `git clone "$CST_BACKEND_GIT_REPO" /tmp/cst-backend-repo`
+If multiple branches, environments, or code locations could match the reported issue, stop and ask which one reflects the incident before reading code.
 
-Treat the code path as potentially split across frontend code and backend code.
-
-Search relevant files with `rg` or `Glob` in the corresponding frontend and backend locations. Read the frontend entry points, request construction, page logic, and state handling when the symptom is user-facing. Read the backend handlers, services, jobs, and data-processing logic that receive or continue that flow.
+Search relevant files in the corresponding frontend and backend locations. Read the frontend entry points, request construction, page logic, and state handling when the symptom is user-facing. Read the backend handlers, services, jobs, and data-processing logic that receive or continue that flow.
 
 When the issue crosses layers, trace the full path from frontend behavior to backend processing and then to database changes, task execution, or external calls. Understand the logic flow that matches the symptom and the log evidence.
 
 ### 4. Query Database
 
-`mysql -h "$CST_MYSQL_HOST" -P "$CST_MYSQL_PORT" -u "$CST_MYSQL_USER" -p"$CST_MYSQL_PASSWORD"` (READ ONLY)
+Use the configured MySQL access method and credentials from the current shell or local investigation config. Database access is read-only for investigation unless the user explicitly asks for a data repair plan.
+
+If multiple database environments or replicas could match the issue, stop and ask which one is authoritative for the reported incident.
 
 Use database checks to confirm or rule out the hypothesis formed from the logs and code.
 
@@ -131,6 +136,21 @@ If the investigation is complete but Feishu write-back fails, do not lose the co
 
 After the cause is clear, ask whether the user wants a fix branch created.
 
-**User confirms**: `cd /tmp/cst-repo && git checkout master && git checkout -b fix/cst-[issue]-[date]`, implement fix, commit and push
+**User confirms**: create a fix branch from the repository and base branch that match the investigated issue, implement the fix in the affected frontend and/or backend code, then commit and push according to the project's normal git workflow.
 
-**User declines**: end workflow
+**User declines**: end the investigation after reporting the final conclusion and next action.
+
+## Completion Signals
+
+The investigation is complete only when all applicable criteria are satisfied:
+
+- The symptom is aligned: user or entity, time window, feature/page, expected behavior, actual behavior, frequency, and current status are known or explicitly unavailable.
+- Logs were checked through the configured access method, or the access gap is reported with the exact missing prerequisite.
+- Relevant frontend and backend code paths were read and traced for the implicated flow; if one side is not relevant, explain why it was excluded.
+- MySQL data was checked when the hypothesis depends on persisted state, or the report explains why database verification was not needed or not available.
+- The final report includes **Symptoms**, **Action**, **Code Problem**, **Why it happened**, **Impact**, and **Evidence**.
+- The root cause is backed by concrete evidence from logs, code, database records, or a clearly named absence of evidence.
+- If Feishu doc logging is enabled, the write-back outcome is reported as succeeded, skipped, or failed with the reason.
+- The post-investigation fix decision is recorded: no fix needed, user declined a fix, or the target repo/base branch for a fix has been identified.
+
+Do not close the investigation after only seeing a suspicious log line or only reading one code path. Close it when the symptom, evidence, cause, action, and write-back state all line up.

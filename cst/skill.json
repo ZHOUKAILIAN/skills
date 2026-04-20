@@ -1,0 +1,4 @@
+{
+  "name": "cst",
+  "description": "Use when investigating a customer service issue that requires symptom alignment, evidence from logs, frontend/backend code, MySQL data, root-cause explanation for product and engineering, or optional Feishu investigation logging."
+}
