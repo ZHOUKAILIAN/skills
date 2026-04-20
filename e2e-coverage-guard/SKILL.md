@@ -1,7 +1,7 @@
 ---
 name: e2e-coverage-guard
 description: |
-  Use when the user provides a Feishu link (Base table or Doc) containing change records (bugs, features, requirements, optimizations) and wants to ensure E2E test coverage for the affected user journeys. Reads the Feishu source via lark-cli, maps each change to a user journey, checks existing E2E coverage by journey, and fills gaps. Does not run tests or fix code.
+  Use when the user provides a Feishu link (Base table or Doc) with bugs, features, requirements, or optimizations and wants E2E coverage checked or filled for affected user journeys.
 ---
 
 # E2E Coverage Guard

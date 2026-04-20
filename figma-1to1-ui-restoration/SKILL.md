@@ -1,7 +1,7 @@
 ---
 name: figma-1to1-ui-restoration
 description: |
-  Use when a user provides a Figma URL or node ID and wants exact 1:1 UI restoration. Applies to components, popups, pages, and partial modules. Requires exhaustive node traversal, geometry-derived spacing, and multi-layer verification.
+  Use when a user provides a Figma URL, fileKey, or node-id and wants an exact 1:1 UI implementation or restoration for a component, popup, page, or partial module.
 ---
 
 # Figma 1:1 UI Restoration

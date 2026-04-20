@@ -1,5 +1,5 @@
 {
   "name": "figma-restoration-review",
-  "description": "Review existing UI implementation against Figma design for restoration fidelity. Outputs a structured deviation checklist without modifying code.",
+  "description": "Use when a user provides a Figma URL, fileKey, or node-id and wants a read-only fidelity review of an existing UI implementation rather than code changes.",
   "sub_skills": []
 }

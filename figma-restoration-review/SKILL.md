@@ -1,7 +1,7 @@
 ---
 name: figma-restoration-review
 description: |
-  Review an existing UI implementation against a Figma design for restoration fidelity. Use when a user provides a Figma URL or node ID and wants to verify how closely their code matches the design. Outputs a structured deviation checklist — does not modify code.
+  Use when a user provides a Figma URL, fileKey, or node-id and wants a read-only fidelity review of an existing UI implementation rather than code changes.
 ---
 
 # Figma Restoration Review

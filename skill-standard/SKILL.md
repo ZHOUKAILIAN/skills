@@ -1,11 +1,13 @@
 ---
 name: skill-standard
-description: The authoritative quality standard for writing SKILL.md files. Use this to evaluate, audit, or improve any skill's content.
+description: Use when evaluating, auditing, or improving SKILL.md content against the repository's skill authoring standard.
 ---
 
 # Skill Standard
 
 The authoritative reference for what makes a skill well-written. Use this when writing a new skill, auditing an existing one, or improving SKILL.md content quality.
+
+A good skill reduces repeated model failure modes with the minimum set of clear rules needed to change behavior. It should not become a speculative process document.
 
 ---
 
@@ -85,4 +87,56 @@ For any task, define an explicit completion signal tied to a verifiable standard
 **How to write completion signals in a skill:**
 - ✅ "Read all child nodes before generating output. Do not assume the structure from partial traversal."
 - ✅ "Verify every item in the list is processed. Log skipped items explicitly."
+- ✅ "For multi-mode skills, narrow to one active mode before applying mode-specific completion checks."
 - ❌ (no completion signal stated — model decides when it's done)
+- ❌ "One completion rule covers all entry points" when the skill supports materially different task types
+
+### 9. Teach the Model When to Stop and Ask
+
+Skills should define decision boundaries for ambiguity. If a wrong silent assumption would change scope, behavior, or file targets, the skill must tell the model to surface the ambiguity instead of guessing.
+
+- ✅ "If multiple ownership candidates exist, present them and ask the user which one should own the change."
+- ✅ "If the route is unclear, stop after naming the ambiguity and the checked candidates."
+- ❌ "Pick the most likely interpretation and continue" when different interpretations lead to different outputs
+
+### 10. No Speculative Complexity
+
+Write the minimum rule set that closes the observed failure mode. Do not add workflow branches, abstractions, or edge-case process for hypothetical future scenarios that the skill does not actually need to control.
+
+- ✅ Add one short routing rule when the real failure is "agents keep creating new bugfix docs"
+- ❌ Add a large taxonomy of exception cases that were never observed and do not change current decisions
+
+If a section would not change what the model does on a real task, cut it.
+
+### 11. Every Rule Must Trace to a Real Failure Mode
+
+A skill is not a general advice essay. Each major section should exist because it prevents a specific repeated mistake, closes a loophole, or defines a required success condition.
+
+- ✅ "Declare asset purpose" because models misuse unnamed bundled files
+- ✅ "Use active mode before completion checks" because multi-entry skills otherwise over-constrain partial invocations
+- ❌ Generic best-practice filler that sounds good but does not change routing, output, or verification
+
+When auditing a skill, ask: "Which concrete model failure does this rule prevent?" If there is no answer, the rule is probably noise.
+
+### 12. Prefer Short Wrong/Right Contrasts for Non-Obvious Rules
+
+When a rule corrects a common bad instinct, include one short contrastive example so the model can see the behavior boundary immediately.
+
+- ✅ "Present candidate owners to the user" vs. "silently create a new doc pair"
+- ✅ "Describe what `requirements-template.md` is for" vs. "just list the filename"
+- ❌ Long tutorial sections when a two-line contrast would teach the rule faster
+
+## Audit Completion Signal
+
+An audit or improvement pass using this standard is complete only when all applicable checks are done:
+
+- The skill's trigger description is checked in both `SKILL.md` frontmatter and `skill.json`.
+- Required metadata files exist and stay consistent with the documented behavior.
+- Skill dependencies are checked against `skill.json.sub_skills`.
+- Bundled assets, scripts, templates, or helper files are checked for purpose declarations.
+- Portable-path and no-hardcoded-command rules are checked against the edited scope.
+- Completion signals are checked for presence and for fit with the skill's actual modes.
+- Ambiguity boundaries are checked where silent assumptions would change routing or file targets.
+- Findings include concrete file references, or the audit explicitly states that no findings were found in scope.
+
+Do not end an audit after a few style observations. End it after metadata, dependency surface, assets, portability, completion logic, and reported findings have all been checked for the requested scope.
