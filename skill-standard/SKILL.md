@@ -125,3 +125,18 @@ When a rule corrects a common bad instinct, include one short contrastive exampl
 - ✅ "Present candidate owners to the user" vs. "silently create a new doc pair"
 - ✅ "Describe what `requirements-template.md` is for" vs. "just list the filename"
 - ❌ Long tutorial sections when a two-line contrast would teach the rule faster
+
+## Audit Completion Signal
+
+An audit or improvement pass using this standard is complete only when all applicable checks are done:
+
+- The skill's trigger description is checked in both `SKILL.md` frontmatter and `skill.json`.
+- Required metadata files exist and stay consistent with the documented behavior.
+- Skill dependencies are checked against `skill.json.sub_skills`.
+- Bundled assets, scripts, templates, or helper files are checked for purpose declarations.
+- Portable-path and no-hardcoded-command rules are checked against the edited scope.
+- Completion signals are checked for presence and for fit with the skill's actual modes.
+- Ambiguity boundaries are checked where silent assumptions would change routing or file targets.
+- Findings include concrete file references, or the audit explicitly states that no findings were found in scope.
+
+Do not end an audit after a few style observations. End it after metadata, dependency surface, assets, portability, completion logic, and reported findings have all been checked for the requested scope.

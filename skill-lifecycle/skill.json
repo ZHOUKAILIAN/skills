@@ -1,4 +1,5 @@
 {
   "name": "skill-lifecycle",
-  "description": "Full lifecycle management for skills: create new skills, fix and improve existing ones, and submit changes via PR."
+  "description": "Use when creating, improving, installing, syncing, or shipping a skill and you need one workflow that covers SKILL.md, skill.json, bundled assets, and release handoff.",
+  "sub_skills": ["skill-standard"]
 }
