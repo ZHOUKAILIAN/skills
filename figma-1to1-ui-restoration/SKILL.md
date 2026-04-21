@@ -116,6 +116,10 @@ Figma does not expose CSS semantics. Derive insets and gaps from raw `x`, `y`, `
 - Write the derivation formula
 - Do not say "padding is 16" without showing which nodes produce that 16
 
+### Follow `css-best-practices` before writing CSS
+
+Use `css-best-practices` to translate audited Figma geometry into maintainable CSS. Figma coordinates are measurement evidence; they are not permission to recreate every layer with absolute coordinates. Record any positioning exception with the reason, anchor, and affected state.
+
 ### Vertical closure is required
 
 For each major container, prove: `top inset + internal gaps + content heights + bottom inset = container height`. If the numbers do not close, keep reading — the audit is not complete. Do not start implementation until closure passes.
@@ -147,6 +151,7 @@ Every audit must cover:
 - Root geometry and position
 - Full child structure map with depth
 - Derived vertical and horizontal spacing (with formulas)
+- CSS strategy required by `css-best-practices`
 - Typography: size, line height, weight, tracking, color
 - Colors, borders, radius, shadows
 - Icon and button sizes
@@ -168,6 +173,8 @@ Do not claim restoration based on a single signal. All five layers are required:
 4. **Visual diff** — implementation screenshot vs Figma screenshot at same viewport, scale, and state
 5. **State coverage** — every in-scope state has a matching implementation and verification result
 
+Geometry verification must include a `css-best-practices` check. Any `absolute` or `fixed` positioning in the restored boundary must have a recorded reason tied to an out-of-flow layer.
+
 Use measurable thresholds. Do not use "looks close" as a verification result.
 
 Record the outcome for each layer. If a layer could not be run, say why and keep the task open.
@@ -183,9 +190,10 @@ The task is complete only when ALL of the following are verified:
 5. Vertical closure passes for each major container.
 6. State matrix covers all in-scope states.
 7. All five verification layers (structure, geometry, content, visual diff, state) have been run.
-8. No unresolved critical unknowns remain in the ledger.
-9. Any reused component or token has parity proof, or the deviation is explicitly recorded.
-10. Every non-renderable node has an explicit handling decision: platform delegation, behavior translation, or justified exclusion.
+8. CSS strategy satisfies `css-best-practices`, and every `absolute` or `fixed` positioned element has a justified out-of-flow reason.
+9. No unresolved critical unknowns remain in the ledger.
+10. Any reused component or token has parity proof, or the deviation is explicitly recorded.
+11. Every non-renderable node has an explicit handling decision: platform delegation, behavior translation, or justified exclusion.
 
 If any item is missing, say so explicitly — do not soften it into "mostly restored".
 
