@@ -60,6 +60,12 @@
       "prompt": "这个节点里有很多 instance。即使 get_metadata(instance) 看起来没有 children，也不要直接当作 terminal。你要继续验证实例内部有没有实现相关的真实结构，没验证完不要开始实现。",
       "expected_output": "应该明确指出 instance 不能仅凭 metadata 无子节点就视为 terminal，需要额外使用 design context 做 shell expansion 检查。输出应说明 terminal 判定来自 metadata 加 shell expansion，而不是 metadata 单独成立。",
       "files": []
+    },
+    {
+      "id": 10,
+      "prompt": "你实现这个 Figma 弹层时不要为了 1:1 还原就给每个文字、图标和按钮都写 position:absolute/top/left。普通内容应该随着父容器联动，用正常 CSS 布局来写，只有真正浮层或叠层才允许定位。",
+      "expected_output": "应该使用 css-best-practices，把 Figma 坐标转换成可维护的 CSS 语义，而不是把每个节点直接复制成 position:absolute/top/left。输出应说明普通内容遵守该标准，定位只作为有理由的例外，并记录定位原因、锚点和影响状态。",
+      "files": []
     }
   ]
 }

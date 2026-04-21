@@ -14,6 +14,7 @@
 | Terminal coverage | `100%` |
 | Vertical closure | `pass` |
 | Key geometry tolerance | `{{geometry_tolerance}}` |
+| CSS best practices | `css-best-practices satisfied; positioning exceptions justified` |
 | State coverage | `100%` |
 | Visual diff status | `pass` |
 
@@ -33,6 +34,14 @@
 | Bottom inset | `{{expected_bottom_inset}}` | `{{actual_bottom_inset}}` | `{{bottom_inset_tolerance}}` | {{bottom_inset_result}} |
 | Main gap | `{{expected_main_gap}}` | `{{actual_main_gap}}` | `{{main_gap_tolerance}}` | {{main_gap_result}} |
 | CTA size | `{{expected_cta_size}}` | `{{actual_cta_size}}` | `{{cta_tolerance}}` | {{cta_result}} |
+
+## CSS Best Practices Check
+
+| Item | Expected | Actual | Result |
+| --- | --- | --- | --- |
+| Flow layout | {{expected_flow_layout}} | {{actual_flow_layout}} | {{flow_layout_result}} |
+| Absolute/fixed positioning | {{expected_positioning_scope}} | {{actual_positioning_scope}} | {{positioning_result}} |
+| Positioning rationale | {{expected_positioning_reason}} | {{actual_positioning_reason}} | {{positioning_reason_result}} |
 
 ## Content Check
 
