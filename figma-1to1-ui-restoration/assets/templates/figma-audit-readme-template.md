@@ -88,6 +88,13 @@ flowchart TD
 | Closure formula | `{{closure_formula}}` |
 | Closure result | `{{closure_result}}` |
 
+## CSS Strategy
+
+| Container or relationship | Geometry evidence | CSS primitive | `css-best-practices` decision |
+| --- | --- | --- | --- |
+| {{layout_container_1}} | {{layout_evidence_1}} | {{layout_primitive_1}} | {{positioning_decision_1}} |
+| {{layout_container_2}} | {{layout_evidence_2}} | {{layout_primitive_2}} | {{positioning_decision_2}} |
+
 ## Shell vs Real Visible Bounds
 
 | Node | Metadata bounds | Real visible bounds | Conclusion |
@@ -142,5 +149,6 @@ flowchart TD
 - Terminal-node coverage: {{terminal_coverage}}
 - Derived spacing coverage: {{spacing_coverage}}
 - Vertical closure: {{vertical_closure_status}}
+- CSS strategy: {{layout_strategy_status}}
 - Remaining uncertainty: {{remaining_uncertainty}}
 - Ready for implementation: {{implementation_ready}}
