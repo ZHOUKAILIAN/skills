@@ -128,6 +128,22 @@ For each major container, prove: `top inset + internal gaps + content heights + 
 
 Search the existing codebase first. If a rough version exists, refine that file directly. Only create a new implementation if none exists or the user explicitly requests it.
 
+### Inventory existing interaction component owners before rebuilding controls
+
+When the Figma boundary contains an interactive control or an open transient state, search for existing product components that already own that behavior before creating new UI. This applies to date/time pickers, picker wheels, sheets, modals, drawers, popovers, tabs, segmented controls, and form controls with existing state logic.
+
+For each matching candidate, record:
+
+- Component path and name
+- Behavior it owns
+- Visual and state gaps against the Figma audit
+- Reuse decision: direct reuse, prop/wrapper adapter, style variant, or rejected with proof
+
+Do not duplicate picker, sheet, modal, or control behavior while an existing owner can preserve the interaction contract and meet the audited visual target through props, a wrapper, an adapter, or a variant. If visual parity conflicts with behavior ownership, prefer extending the existing behavior owner with the smallest variant unless the audit proves it cannot satisfy the required states.
+
+Wrong: Figma shows an open month picker, so the implementation creates a new picker component from the visible wheel layers.
+Right: The audit identifies the existing date picker and shared sheet components, keeps the behavior owner, and adds only the required variant or adapter to match the audited shell.
+
 ### Follow project conventions
 
 Check the project's measurement system (px, rpx, rem, etc.) and stay consistent with existing code. Do not copy Figma pixel values blindly into a project that uses different units.
@@ -161,17 +177,19 @@ Every audit must cover:
 - Shell vs real visible bounds discrepancies
 - Node classification result for each special node: renderable, platform-native, interaction-proxy, or annotation/demo-only
 - Handling decision for non-renderable nodes: delegated to platform, converted into behavior/state, or excluded with rationale
+- Existing interaction component owner inventory for behavior-heavy UI, including accepted reuse/adaptation or rejection proof
 - Reuse or deviation decisions, with proof when existing code or tokens are kept
 
 ## Verification
 
-Do not claim restoration based on a single signal. All five layers are required:
+Do not claim restoration based on a single signal. The baseline five layers are required, plus the component reuse check when the boundary contains behavior-heavy UI:
 
 1. **Structure** — boundary and terminal coverage are 100% complete
 2. **Geometry** — key dimensions, insets, gaps asserted from rendered output (tolerance ≤0.5px)
 3. **Content** — text, typography, icons, assets, and state branches match the audit
 4. **Visual diff** — implementation screenshot vs Figma screenshot at same viewport, scale, and state
 5. **State coverage** — every in-scope state has a matching implementation and verification result
+6. **Component reuse** — existing interaction component owners are recorded, and any new behavior-heavy component is justified by behavior or parity proof
 
 Geometry verification must include a `css-best-practices` check. Any `absolute` or `fixed` positioning in the restored boundary must have a recorded reason tied to an out-of-flow layer.
 
@@ -189,11 +207,12 @@ The task is complete only when ALL of the following are verified:
 4. Spacing is derived with named reference nodes and formulas.
 5. Vertical closure passes for each major container.
 6. State matrix covers all in-scope states.
-7. All five verification layers (structure, geometry, content, visual diff, state) have been run.
+7. All required verification layers (structure, geometry, content, visual diff, state, and component reuse when applicable) have been run.
 8. CSS strategy satisfies `css-best-practices`, and every `absolute` or `fixed` positioned element has a justified out-of-flow reason.
 9. No unresolved critical unknowns remain in the ledger.
 10. Any reused component or token has parity proof, or the deviation is explicitly recorded.
-11. Every non-renderable node has an explicit handling decision: platform delegation, behavior translation, or justified exclusion.
+11. Any behavior-heavy control has an existing component inventory, with reuse/adaptation accepted or rejection justified.
+12. Every non-renderable node has an explicit handling decision: platform delegation, behavior translation, or justified exclusion.
 
 If any item is missing, say so explicitly — do not soften it into "mostly restored".
 

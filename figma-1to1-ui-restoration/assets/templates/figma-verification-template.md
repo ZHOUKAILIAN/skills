@@ -15,6 +15,7 @@
 | Vertical closure | `pass` |
 | Key geometry tolerance | `{{geometry_tolerance}}` |
 | CSS best practices | `css-best-practices satisfied; positioning exceptions justified` |
+| Component reuse | `existing interaction component owners recorded; new behavior-heavy UI justified` |
 | State coverage | `100%` |
 | Visual diff status | `pass` |
 
@@ -50,6 +51,13 @@
 | Title text | {{expected_title}} | {{actual_title}} | {{title_result}} |
 | Typography | {{expected_typography}} | {{actual_typography}} | {{typography_result}} |
 | Asset wiring | {{expected_assets}} | {{actual_assets}} | {{asset_result}} |
+
+## Interaction Component Reuse Check
+
+| Candidate | Expected owner or extension path | Actual implementation decision | Result | Notes |
+| --- | --- | --- | --- | --- |
+| `{{reuse_candidate_1}}` | {{reuse_expected_1}} | {{reuse_actual_1}} | {{reuse_result_1}} | {{reuse_notes_1}} |
+| `{{reuse_candidate_2}}` | {{reuse_expected_2}} | {{reuse_actual_2}} | {{reuse_result_2}} | {{reuse_notes_2}} |
 
 ## State Coverage Check
 

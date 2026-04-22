@@ -1,6 +1,6 @@
 # 20260331 Figma Node `1261:36014` Audit
 
-## Scope
+## Boundary and Scope
 
 - Figma file: `gmjTw5th1TFPxAd1uzodY2`
 - Root node: `1261:36014` `活动报名`
@@ -31,6 +31,14 @@
 - Key content node: `1261:36024 / 1261:36026 / 1261:36025` row shells expanded to background, label, and count
 - Key CTA node: not inside this boundary
 - Important status difference: `1261:36026` selected row uses a different background asset while layout remains aligned with unselected rows
+
+## Node Classification and Handling
+
+| Node or group | Classification | Handling decision | Rationale |
+| --- | --- | --- | --- |
+| `1261:36014` popup subtree | Renderable UI | Implement as app-rendered modal sheet content | This boundary is the product-owned popup surface |
+| `1261:36024 / 1261:36025 / 1261:36026` option rows | Renderable UI | Implement as stateful selectable rows | Selected and unselected rows are product states, not annotation |
+| Outer page background | Annotation / demo-only | Exclude from this audit boundary | User requested only the popup subtree |
 
 ## Structure Map
 
@@ -91,6 +99,12 @@ flowchart TD
 | Closure formula | `16 + 292 + 44 + 126 = 478` |
 | Closure result | `pass` |
 
+## Existing Interaction Component Inventory
+
+| Candidate component | Behavior owned | Figma visual/state gap | Reuse decision | Proof / notes |
+| --- | --- | --- | --- | --- |
+| `n/a` | no existing project component was in scope for this fixture audit | `n/a` | not applicable | This fixture validates node expansion and spacing, not project component reuse |
+
 ## Shell vs Real Visible Bounds
 
 | Node | Metadata bounds | Real visible bounds | Conclusion |
@@ -140,11 +154,26 @@ flowchart TD
 - `1261:36024`, `1261:36025`, `1261:36026`, and `1261:36027` look terminal in metadata but are not safe to mark terminal until `get_design_context` reveals their internal structure.
 - The popup subtree is a real example of why `instance metadata is not completion proof` must be enforced as a hard gate.
 
+## Verification Summary
+
+| Layer | Status | Evidence |
+| --- | --- | --- |
+| Structure | pass | boundary coverage and terminal-node coverage are both complete |
+| Geometry | pass | derived spacing and vertical closure pass for the main content stack |
+| Content | pass | visible text, assets, and state rows are inventoried |
+| Visual diff | not run | this fixture is an audit-contract example, not a rendered implementation |
+| State coverage | pass | selected and unselected option states are listed |
+| Component reuse | not applicable | no implementation component reuse decision was part of this fixture |
+
 ## Current Read Outcome
 
 - Boundary coverage: 100%
 - Terminal-node coverage: 100%
 - Derived spacing coverage: complete for the main content stack
 - Vertical closure: pass
+- State-matrix coverage: complete
+- Existing interaction component reuse: not applicable
+- Non-renderable review: complete
+- Critical unknowns: none
 - Remaining uncertainty: no unresolved in-bound shell-capable node remains for this popup subtree
 - Ready for implementation: yes

@@ -14,6 +14,7 @@ README_REQUIRED_HEADINGS = [
     "## Derived Spacing",
     "## Vertical Closure Check",
     "## State Matrix",
+    "## Existing Interaction Component Inventory",
     "## Shell vs Real Visible Bounds",
     "## Unexpanded Nodes",
     "## Verification Summary",
@@ -26,6 +27,7 @@ README_REQUIRED_OUTCOME_KEYS = [
     "Derived spacing coverage:",
     "Vertical closure:",
     "State-matrix coverage:",
+    "Existing interaction component reuse:",
     "Non-renderable review:",
     "Critical unknowns:",
     "Ready for implementation:",
@@ -87,12 +89,14 @@ def validate_readme(readme_text: str) -> list[str]:
     vertical_closure = parse_outcome_value(readme_text, "Vertical closure:")
     implementation_ready = parse_outcome_value(readme_text, "Ready for implementation:")
     state_coverage = parse_outcome_value(readme_text, "State-matrix coverage:")
+    component_reuse = parse_outcome_value(readme_text, "Existing interaction component reuse:")
     non_renderable_review = parse_outcome_value(readme_text, "Non-renderable review:")
     critical_unknowns = parse_outcome_value(readme_text, "Critical unknowns:")
 
     require(terminal_coverage is not None, "README is missing terminal coverage value", errors)
     require(vertical_closure is not None, "README is missing vertical closure value", errors)
     require(state_coverage is not None, "README is missing state-matrix coverage value", errors)
+    require(component_reuse is not None, "README is missing interaction component reuse value", errors)
     require(non_renderable_review is not None, "README is missing non-renderable review value", errors)
     require(critical_unknowns is not None, "README is missing critical unknowns value", errors)
     require(implementation_ready is not None, "README is missing implementation readiness value", errors)
@@ -111,6 +115,12 @@ def validate_readme(readme_text: str) -> list[str]:
         require(
             state_coverage is not None and state_coverage.lower() in {"100%", "yes", "complete", "all states covered"},
             "README cannot mark implementation ready unless state-matrix coverage is complete",
+            errors,
+        )
+        require(
+            component_reuse is not None
+            and component_reuse.lower() not in {"missing", "unknown", "unreviewed", "tbd"},
+            "README cannot mark implementation ready unless interaction component reuse is reviewed or marked not applicable",
             errors,
         )
         require(

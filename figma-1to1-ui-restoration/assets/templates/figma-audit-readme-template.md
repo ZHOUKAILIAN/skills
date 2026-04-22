@@ -1,14 +1,11 @@
 # {{date}} Figma Node `{{root_node}}` Audit
 
-## Scope
+## Boundary and Scope
 
 - Figma file: `{{file_key}}`
 - Root node: `{{root_node}}` `{{root_name}}`
 - Source link: `{{figma_url}}`
 - Purpose: {{purpose}}
-
-## Boundary Rule
-
 - Requested boundary: {{boundary_rule}}
 - Included states: {{included_states}}
 - Excluded states or out-of-scope areas: {{excluded_scope}}
@@ -31,6 +28,13 @@
 - Key content node: `{{content_summary}}`
 - Key CTA node: `{{cta_summary}}`
 - Important status difference: `{{status_difference_summary}}`
+
+## Node Classification and Handling
+
+| Node or group | Classification | Handling decision | Rationale |
+| --- | --- | --- | --- |
+| `{{classified_node_1}}` | {{classification_1}} | {{handling_1}} | {{classification_reason_1}} |
+| `{{classified_node_2}}` | {{classification_2}} | {{handling_2}} | {{classification_reason_2}} |
 
 ## Structure Map
 
@@ -95,6 +99,13 @@ flowchart TD
 | {{layout_container_1}} | {{layout_evidence_1}} | {{layout_primitive_1}} | {{positioning_decision_1}} |
 | {{layout_container_2}} | {{layout_evidence_2}} | {{layout_primitive_2}} | {{positioning_decision_2}} |
 
+## Existing Interaction Component Inventory
+
+| Candidate component | Behavior owned | Figma visual/state gap | Reuse decision | Proof / notes |
+| --- | --- | --- | --- | --- |
+| `{{component_candidate_1}}` | {{component_behavior_1}} | {{component_gap_1}} | {{component_decision_1}} | {{component_proof_1}} |
+| `{{component_candidate_2}}` | {{component_behavior_2}} | {{component_gap_2}} | {{component_decision_2}} | {{component_proof_2}} |
+
 ## Shell vs Real Visible Bounds
 
 | Node | Metadata bounds | Real visible bounds | Conclusion |
@@ -138,6 +149,17 @@ flowchart TD
 - `{{text_node_1}}`: `{{font_size_1}} / {{line_height_1}}`, `{{font_weight_1}}`, `{{font_color_1}}`, tracking `{{tracking_1}}`
 - `{{text_node_2}}`: `{{font_size_2}} / {{line_height_2}}`, `{{font_weight_2}}`, `{{font_color_2}}`, tracking `{{tracking_2}}`
 
+## Verification Summary
+
+| Layer | Status | Evidence |
+| --- | --- | --- |
+| Structure | {{verification_structure_status}} | {{verification_structure_evidence}} |
+| Geometry | {{verification_geometry_status}} | {{verification_geometry_evidence}} |
+| Content | {{verification_content_status}} | {{verification_content_evidence}} |
+| Visual diff | {{verification_visual_status}} | {{verification_visual_evidence}} |
+| State coverage | {{verification_state_status}} | {{verification_state_evidence}} |
+| Component reuse | {{verification_reuse_status}} | {{verification_reuse_evidence}} |
+
 ### Instance Notes
 
 - {{instance_note_1}}
@@ -149,6 +171,10 @@ flowchart TD
 - Terminal-node coverage: {{terminal_coverage}}
 - Derived spacing coverage: {{spacing_coverage}}
 - Vertical closure: {{vertical_closure_status}}
+- State-matrix coverage: {{state_matrix_coverage}}
 - CSS strategy: {{layout_strategy_status}}
+- Existing interaction component reuse: {{component_reuse_status}}
+- Non-renderable review: {{non_renderable_review}}
+- Critical unknowns: {{critical_unknowns}}
 - Remaining uncertainty: {{remaining_uncertainty}}
 - Ready for implementation: {{implementation_ready}}
