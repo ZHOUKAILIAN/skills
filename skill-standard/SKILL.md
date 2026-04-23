@@ -1,88 +1,109 @@
 ---
 name: skill-standard
-description: The authoritative quality standard for writing SKILL.md files. Use this to evaluate, audit, or improve any skill's content.
+description: Meta-standard for classifying skills before applying the correct quality rubric. Use this to decide whether a skill is workflow-oriented or strategy-oriented, then switch to the matching standard.
 ---
 
 # Skill Standard
 
-The authoritative reference for what makes a skill well-written. Use this when writing a new skill, auditing an existing one, or improving SKILL.md content quality.
+This is the routing standard, not the only writing standard.
+
+Use this skill to classify a skill into the correct category before judging its quality.
+A single universal rubric is not sufficient for all SKILL.md files.
 
 ---
 
-## Skill Writing Standard
+## Core Rule
 
-**Every SKILL.md MUST follow these principles:**
+Before evaluating or rewriting any skill, first decide what kind of skill it is.
 
-### 1. Semantically Clear, No Ambiguity
+There are at least two major categories:
 
-Every word in a SKILL.md must have a single clear meaning. Avoid vague terms that could be interpreted multiple ways.
+1. **Workflow Skills**
+   - execution-oriented
+   - meant to get a task done
+   - usually have concrete success/failure conditions
+   - often back cron jobs, automation, API tasks, or operational flows
 
-- ✅ "Search for major AI model releases (new versions from OpenAI, Anthropic, Google, Meta)"
-- ❌ "Update model" (update which model? update how? update the AI model itself, or update info about models?)
+2. **Strategy Skills**
+   - reasoning-oriented
+   - meant to give a framework, doctrine, checklist, or evaluation method
+   - usually guide judgment rather than execute a fixed flow
+   - often support review, writing, planning, or auditing work
 
-### 2. Goal-Oriented, Not Step-by-Step
+Do not apply one category's rubric to the other category by default.
 
-Tell the AI **what** to achieve, not **how** to execute. The AI can figure out commands, file discovery, and execution order on its own.
+---
 
-- ✅ "Complete the daily check-in and fetch sign record to verify"
-- ❌ "Run `python3 -m checkin.xiaojuchongdian.src.main run --task xiaoju.checkin --verify-record`"
+## Classification Heuristic
 
-### 3. Declare Available Tools, Don't Dictate Usage
+### Choose **Workflow Skill** when the skill primarily answers:
+- What concrete task should be completed?
+- What assets or runtime are available to complete it?
+- What counts as done?
+- What should happen when runtime conditions fail?
 
-If the skill has programmatic assets (scripts, CLI tools, APIs), describe **what they do** and **where they are** relative to the skill. Let the AI read the code and decide how to use them.
+Typical examples:
+- check-in flows
+- changelog collection
+- auth refresh flows
+- scheduled automation
+- API-driven operational tasks
 
-- ✅ "Entry point: `main.py`. Read the file to understand usage."
-- ❌ "Run `python3 -m checkin.xiaojuchongdian.src.main status --task xiaoju.checkin`"
+### Choose **Strategy Skill** when the skill primarily answers:
+- How should the model think about this class of problem?
+- What principles or decision criteria should it use?
+- What anti-patterns should it avoid?
+- When should this framework be applied or not applied?
 
-### 4. Portable Paths Only
+Typical examples:
+- review rubrics
+- writing heuristics
+- evaluation standards
+- architectural judgment frameworks
+- planning/doctrine/checklist skills
 
-Never hardcode absolute or repo-root-relative paths. Use paths relative to the skill itself.
+---
 
-- ✅ "Located in the `scripts/` directory of this skill"
-- ❌ "Location: `checkin/xiaojuchongdian/skill/get-params/scripts/`"
+## Routing Rule
 
-### 5. Know What AI Can and Cannot Do
+After classification:
 
-**AI can figure out on its own** (don't over-specify):
-- How to run a Python/Shell/Node script after reading it
-- Which subcommands or flags a CLI supports
-- How to parse JSON output
-- How to find files in a directory
-- Error handling and retry logic
+- If it is execution-oriented, use `workflow-skill-standard`.
+- If it is reasoning/framework-oriented, use `strategy-skill-standard`.
 
-**AI needs to be told** (must specify):
-- The goal and success criteria
-- What programmatic assets exist and their purpose
-- Key constraints (auth requirements, idempotency, user interaction needed)
-- Dependencies on other skills (by skill name, not path)
+If a skill mixes both categories, identify its primary role first.
+Only then decide whether to:
+- keep it hybrid intentionally, or
+- split it into a workflow skill plus a strategy skill.
 
-### 6. Reference by Skill Name, Not Path
+---
 
-Skills depend on each other by **name**. OpenClaw resolves names to locations.
+## Anti-Patterns
 
-- ✅ "Use the `xiaoju-get-params` skill to refresh credentials"
-- ❌ "Switch to `checkin/xiaojuchongdian/skill/get-params/SKILL.md`"
+### Wrong: workflow rubric forced onto strategy skills
+Symptoms:
+- over-constraining an evaluation rubric with rigid execution gates
+- demanding procedural completion signals from a doctrine/checklist skill
+- turning judgment frameworks into brittle pseudo-SOPs
 
-### 7. Declare Dependencies in skill.json
+### Wrong: strategy rubric forced onto workflow skills
+Symptoms:
+- goals sound good but execution contract is vague
+- runtime constraints are implied instead of specified
+- completion is left to model intuition
+- automation can "look done" without being verifiably complete
 
-External or sub-skill dependencies must be declared in `skill.json` under `sub_skills` (by skill name), so OpenClaw can auto-install them.
+---
 
-### 8. Declare Explicit Completion Signals
+## Output
 
-For any task, define an explicit completion signal tied to a verifiable standard — not to the model's own sense of sufficiency. **"Looks done" is not done. Completion means the defined criteria are met and verified.**
+When using this skill, produce:
+1. the detected skill category
+2. the reason for classification
+3. the correct downstream standard to apply
+4. if needed, whether the skill should be split into two skills
 
-**Warning Signs** — if you think any of these, pause and take the correct action:
+## Completion Signal
 
-| Thought | Reality | Correct Action |
-|---|---|---|
-| "I've read enough to understand" | Read = read every item in scope. Partial reads are not reads. | Enumerate all items, then read each one. |
-| "I've seen most of the nodes/files" | Most ≠ all. | List all items first, then process them in order. |
-| "This looks like a standard structure" | Assumptions replace reading. | Read the actual content before drawing conclusions. |
-| "The fix is small, checking is overkill" | Small fixes break adjacent behavior. | Verify the full scope before and after the fix. |
-| "I've covered the main cases" | Main cases ≠ all cases. | Explicitly check for edge items before closing. |
-| "I've completed the task" | Completion ≠ verified to the highest standard. Reading all nodes does not mean spacing, hierarchy, and every property has been validated. | Validate every property against the full spec before declaring done. |
-
-**How to write completion signals in a skill:**
-- ✅ "Read all child nodes before generating output. Do not assume the structure from partial traversal."
-- ✅ "Verify every item in the list is processed. Log skipped items explicitly."
-- ❌ (no completion signal stated — model decides when it's done)
+Do not stop at “this skill looks fine.”
+A completed review must explicitly name the skill category and the correct standard that should govern it.
