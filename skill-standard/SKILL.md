@@ -5,138 +5,219 @@ description: Use when evaluating, auditing, or improving SKILL.md content agains
 
 # Skill Standard
 
-The authoritative reference for what makes a skill well-written. Use this when writing a new skill, auditing an existing one, or improving SKILL.md content quality.
+Route skill writing, auditing, or improvement work to the right standard before judging content.
 
-A good skill reduces repeated model failure modes with the minimum set of clear rules needed to change behavior. It should not become a speculative process document.
+A good skill reduces repeated model failure modes with the minimum set of clear rules needed to change behavior. This skill is the dispatcher for that review, not the place to expand every type-specific rule.
 
----
+## Dispatch Rule
 
-## Skill Writing Standard
+If a type-specific standard applies, use it before making final judgments.
 
-**Every SKILL.md MUST follow these principles:**
+Do not rely on memory of the standard. Standards change. Load the relevant sub-skill when its type applies.
 
-### 1. Semantically Clear, No Ambiguity
+| Skill type | Use this standard | When |
+| --- | --- | --- |
+| Task skill | `task-standard` | The skill executes work and produces a verifiable artifact or task outcome |
+| Controller skill | This file for now | The skill governs routing, sequencing, gates, or verification across tasks |
 
-Every word in a SKILL.md must have a single clear meaning. Avoid vague terms that could be interpreted multiple ways.
+If the target skill is mixed, choose the active mode first. Apply `task-standard` to task modes and the controller section here to controller modes. Do not force one checklist across modes.
 
-- ✅ "Search for major AI model releases (new versions from OpenAI, Anthropic, Google, Meta)"
-- ❌ "Update model" (update which model? update how? update the AI model itself, or update info about models?)
+## Dispatch Flow
 
-### 2. Goal-Oriented, Not Step-by-Step
+```text
+User asks to write/audit/improve a skill
+  -> Read SKILL.md and skill.json
+  -> Classify primary type
+     -> Task skill? Apply task-standard
+     -> Controller skill? Apply controller section in this file
+     -> Mixed? Select active mode, then apply the matching standard
+  -> Apply universal standard
+  -> Report findings or make the smallest needed fix
+```
 
-Tell the AI **what** to achieve, not **how** to execute. The AI can figure out commands, file discovery, and execution order on its own.
+## Red Flags
 
-- ✅ "Complete the daily check-in and fetch sign record to verify"
-- ❌ "Run `python3 -m checkin.xiaojuchongdian.src.main run --task xiaoju.checkin --verify-record`"
+These thoughts mean stop and dispatch:
 
-### 3. Declare Available Tools, Don't Dictate Usage
+| Thought | Correct action |
+| --- | --- |
+| "This is obviously a task skill, I can judge it from the generic checklist." | Load or apply `task-standard`. |
+| "The task skill says be careful, that is enough." | Check for task-local gates, verification, and proof package. |
+| "This skill has several modes, but one completion signal is fine." | Require active mode and mode-specific completion checks. |
+| "The dependency is mentioned in prose, so skill.json is optional." | Declare the dependency in `skill.json.sub_skills`. |
+| "I can add detailed task rules to skill-standard." | Put task-specific rules in the task skill or in `task-standard`. |
 
-If the skill has programmatic assets (scripts, CLI tools, APIs), describe **what they do** and **where they are** relative to the skill. Let the AI read the code and decide how to use them.
+## Skill Type Gate
 
-- ✅ "Entry point: `main.py`. Read the file to understand usage."
-- ❌ "Run `python3 -m checkin.xiaojuchongdian.src.main status --task xiaoju.checkin`"
+Before judging a skill, classify it as one primary type:
 
-### 4. Portable Paths Only
+| Type | Purpose | Examples |
+| --- | --- | --- |
+| Task skill | Helps the agent complete a concrete class of work and produce a task artifact | Figma restoration, customer-service troubleshooting, E2E coverage generation, CSS review |
+| Controller skill | Changes how the agent chooses, sequences, gates, or verifies work across tasks | Skill lifecycle, docs-first workflow, debugging discipline, skill-use policy |
 
-Never hardcode absolute or repo-root-relative paths. Use paths relative to the skill itself.
+Reference or constraint skills are usually task skills with a narrow artifact: they provide standards that must be applied while doing work. If a skill mostly tells the agent how to govern its own process, audit it as a controller skill.
 
-- ✅ "Located in the `scripts/` directory of this skill"
-- ❌ "Location: `checkin/xiaojuchongdian/skill/get-params/scripts/`"
+If a skill mixes both types, require an explicit active mode before applying type-specific completion checks. Do not force one completion rule across materially different modes.
 
-### 5. Know What AI Can and Cannot Do
+## Universal Standard
 
-**AI can figure out on its own** (don't over-specify):
-- How to run a Python/Shell/Node script after reading it
-- Which subcommands or flags a CLI supports
-- How to parse JSON output
-- How to find files in a directory
-- Error handling and retry logic
+Every `SKILL.md` must satisfy these rules regardless of type.
 
-**AI needs to be told** (must specify):
-- The goal and success criteria
-- What programmatic assets exist and their purpose
-- Key constraints (auth requirements, idempotency, user interaction needed)
-- Dependencies on other skills (by skill name, not path)
+### 1. Discovery Metadata Is Trigger-Only
 
-### 6. Reference by Skill Name, Not Path
+The frontmatter `description` and `skill.json.description` must describe when to use the skill, not summarize the whole workflow.
 
-Skills depend on each other by **name**. OpenClaw resolves names to locations.
+Good: "Use when investigating a customer service issue that requires logs, code, data, and root-cause explanation."
+Bad: "Use to ask questions, query logs, read code, query database, write Feishu report, then ask whether to fix."
 
-- ✅ "Use the `xiaoju-get-params` skill to refresh credentials"
-- ❌ "Switch to `checkin/xiaojuchongdian/skill/get-params/SKILL.md`"
+Why: workflow summaries in metadata tempt the agent to act from metadata instead of reading the full skill.
 
-### 7. Declare Dependencies in skill.json
+### 2. Semantically Clear, No Ambiguity
 
-External or sub-skill dependencies must be declared in `skill.json` under `sub_skills` (by skill name), so OpenClaw can auto-install them.
+Every important term must have one clear meaning. Avoid vague verbs when a wrong interpretation would change behavior.
+
+Good: "Search for major AI model releases from OpenAI, Anthropic, Google, and Meta."
+Bad: "Update model."
+
+### 3. One Skill, One Behavior Boundary
+
+A skill should own one coherent behavior boundary. Split when two parts have different triggers, different safety rules, or different completion signals.
+
+Good: one read-only Figma review skill and one implementation/restoration skill.
+Bad: one Figma skill that sometimes reviews, sometimes edits, sometimes creates tests, with one vague completion rule.
+
+### 4. Declare Assets And Tools By Purpose
+
+If the skill has scripts, templates, references, examples, CLIs, APIs, or generated artifacts, name what each asset does and when to use it.
+
+Good: "`scripts/verify_figma_audit.py` checks the audit README and node ledger contract."
+Bad: "Scripts are available."
+
+Do not turn asset declarations into brittle command recipes unless the exact command is the stable interface.
+
+### 5. Portable Paths And Dependencies
+
+Use skill-local paths such as `scripts/`, `assets/templates/`, and `references/`. Do not hardcode absolute paths or one user's workspace layout.
+
+Reference other skills by skill name. If a skill requires another skill, declare it in `skill.json` under `sub_skills`.
+
+Good: "Use `css-best-practices` before writing CSS."
+Bad: "Open the CSS skill from a user-specific absolute path."
+
+### 6. State What The Agent Must Not Guess
+
+Tell the agent the facts it must establish before acting: source of truth, required inputs, target environment, code location, write permission, ownership boundary, or user approval.
+
+Do not over-specify things the agent can safely discover after reading the repo or helper script: basic CLI flags, JSON parsing, file search, or ordinary retry mechanics.
+
+### 7. Define Stop-And-Ask Boundaries
+
+If a silent assumption would change scope, behavior, target files, data writes, credentials, user-visible output, or ownership, the skill must tell the agent to stop and ask.
+
+Good: "If multiple ownership candidates exist, present them and ask which one should own the change."
+Bad: "Pick the most likely owner and continue" when the owner determines which canonical doc is edited.
 
 ### 8. Declare Explicit Completion Signals
 
-For any task, define an explicit completion signal tied to a verifiable standard — not to the model's own sense of sufficiency. **"Looks done" is not done. Completion means the defined criteria are met and verified.**
+Completion must be tied to verifiable criteria, not the model's sense that it is done.
 
-**Warning Signs** — if you think any of these, pause and take the correct action:
+Good: "Every in-scope visible node has terminal-depth coverage and every spacing value has named geometry proof."
+Bad: "The UI looks close."
 
-| Thought | Reality | Correct Action |
-|---|---|---|
-| "I've read enough to understand" | Read = read every item in scope. Partial reads are not reads. | Enumerate all items, then read each one. |
-| "I've seen most of the nodes/files" | Most ≠ all. | List all items first, then process them in order. |
-| "This looks like a standard structure" | Assumptions replace reading. | Read the actual content before drawing conclusions. |
-| "The fix is small, checking is overkill" | Small fixes break adjacent behavior. | Verify the full scope before and after the fix. |
-| "I've covered the main cases" | Main cases ≠ all cases. | Explicitly check for edge items before closing. |
-| "I've completed the task" | Completion ≠ verified to the highest standard. Reading all nodes does not mean spacing, hierarchy, and every property has been validated. | Validate every property against the full spec before declaring done. |
+For multi-mode skills, completion signals must be scoped to the active mode.
 
-**How to write completion signals in a skill:**
-- ✅ "Read all child nodes before generating output. Do not assume the structure from partial traversal."
-- ✅ "Verify every item in the list is processed. Log skipped items explicitly."
-- ✅ "For multi-mode skills, narrow to one active mode before applying mode-specific completion checks."
-- ❌ (no completion signal stated — model decides when it's done)
-- ❌ "One completion rule covers all entry points" when the skill supports materially different task types
+### 9. No Speculative Complexity
 
-### 9. Teach the Model When to Stop and Ask
+Each rule should close a real failure mode, protect a safety boundary, or define a required success condition. If a section would not change what the agent does on a real task, cut it.
 
-Skills should define decision boundaries for ambiguity. If a wrong silent assumption would change scope, behavior, or file targets, the skill must tell the model to surface the ambiguity instead of guessing.
+### 10. Prefer Short Wrong/Right Contrasts
 
-- ✅ "If multiple ownership candidates exist, present them and ask the user which one should own the change."
-- ✅ "If the route is unclear, stop after naming the ambiguity and the checked candidates."
-- ❌ "Pick the most likely interpretation and continue" when different interpretations lead to different outputs
+Use short contrasts for non-obvious rules. They are more useful than long tutorial prose.
 
-### 10. No Speculative Complexity
+Good: "Wrong: create standalone bugfix docs. Right: update the owning requirement/design pair."
+Bad: multiple paragraphs explaining the philosophy without changing the next action.
 
-Write the minimum rule set that closes the observed failure mode. Do not add workflow branches, abstractions, or edge-case process for hypothetical future scenarios that the skill does not actually need to control.
+## Task Skill Standard
 
-- ✅ Add one short routing rule when the real failure is "agents keep creating new bugfix docs"
-- ❌ Add a large taxonomy of exception cases that were never observed and do not change current decisions
+Use `task-standard` for detailed rules when writing, auditing, or improving a task skill.
 
-If a section would not change what the model does on a real task, cut it.
+A task skill executes a concrete class of work and produces a verifiable task artifact. This file only defines the routing and quality gate; `task-standard` owns the detailed task-skill standard.
 
-### 11. Every Rule Must Trace to a Real Failure Mode
+When a target skill is a task skill, use `task-standard` before editing or closing the audit.
 
-A skill is not a general advice essay. Each major section should exist because it prevents a specific repeated mistake, closes a loophole, or defines a required success condition.
+At this level, the audit only needs to confirm that the task skill has:
 
-- ✅ "Declare asset purpose" because models misuse unnamed bundled files
-- ✅ "Use active mode before completion checks" because multi-entry skills otherwise over-constrain partial invocations
-- ❌ Generic best-practice filler that sounds good but does not change routing, output, or verification
+- A concrete artifact or outcome.
+- Objective success criteria.
+- A named source of truth.
+- Task-local anti-laziness gates near the workflow they control.
+- Verification and failed-verification behavior.
+- A proof package requirement for the final output.
 
-When auditing a skill, ask: "Which concrete model failure does this rule prevent?" If there is no answer, the rule is probably noise.
+If any of those are missing, invoke or apply `task-standard` and fix the task skill there instead of expanding this general standard.
 
-### 12. Prefer Short Wrong/Right Contrasts for Non-Obvious Rules
+## Controller Skill Standard
 
-When a rule corrects a common bad instinct, include one short contrastive example so the model can see the behavior boundary immediately.
+Use this section for skills that govern how the agent sequences, routes, delegates, or verifies work.
 
-- ✅ "Present candidate owners to the user" vs. "silently create a new doc pair"
-- ✅ "Describe what `requirements-template.md` is for" vs. "just list the filename"
-- ❌ Long tutorial sections when a two-line contrast would teach the rule faster
+### Required Shape
 
-## Audit Completion Signal
+A controller skill should usually contain:
+
+- `Core Rule`: the behavior change that must happen.
+- `Priority`: how it interacts with user instructions, project rules, and other skills.
+- `Active Mode`: which branch of the process is currently in force.
+- `Gates`: checks that must happen before the next phase.
+- `Red Flags`: thoughts or shortcuts that indicate the agent is about to violate the process.
+- `Handoff Rules`: which skill, phase, or user decision comes next.
+- `Completion Signal`: proof that the process was followed.
+
+### Control The Decision, Not The Artifact
+
+Controller skills should focus on sequencing and guardrails. They should not duplicate the detailed task instructions of the skills they route to.
+
+Good: "Choose improve mode, read current skill artifacts, fix the smallest verified failure, then apply `skill-standard`."
+Bad: repeat the full contents of `skill-standard` inside `skill-lifecycle`.
+
+### Active Mode Is Mandatory For Multi-Entry Skills
+
+If the skill has multiple workflows, select one active mode before acting. Completion checks apply only to that mode.
+
+Good: create mode, improve mode, sync mode, shipping mode.
+Bad: apply all mode checks to every invocation.
+
+### Red Flags Should Target Agent Rationalizations
+
+Controller skills should name the specific shortcut they prevent.
+
+Good: "This is just a quick fix" -> still route the doc owner first.
+Good: "The first few nodes show the pattern" -> keep reading every in-scope node.
+Bad: generic advice such as "be careful" or "think deeply."
+
+### Handoffs Must Be Explicit
+
+If the controller depends on another skill or phase, name when the handoff happens and what the next skill owns.
+
+Good: "`skill-lifecycle` owns create/improve/sync/ship flow; `skill-standard` owns the quality gate."
+Bad: "Use other relevant standards as needed."
+
+## Audit Checklist
 
 An audit or improvement pass using this standard is complete only when all applicable checks are done:
 
-- The skill's trigger description is checked in both `SKILL.md` frontmatter and `skill.json`.
-- Required metadata files exist and stay consistent with the documented behavior.
+- The skill type is classified as task or controller. Mixed skills have an explicit active mode.
+- The relevant type-specific standard was applied: `task-standard` for task skills; controller section here for controller skills.
+- `SKILL.md` frontmatter and `skill.json` names/descriptions are checked for consistency.
+- Descriptions are trigger-only and do not summarize workflow.
 - Skill dependencies are checked against `skill.json.sub_skills`.
-- Bundled assets, scripts, templates, or helper files are checked for purpose declarations.
-- Portable-path and no-hardcoded-command rules are checked against the edited scope.
-- Completion signals are checked for presence and for fit with the skill's actual modes.
-- Ambiguity boundaries are checked where silent assumptions would change routing or file targets.
+- Bundled assets, scripts, templates, references, or helper files are documented by purpose.
+- Paths are portable and skill-local unless the skill is explicitly environment-specific.
+- Stop-and-ask boundaries exist where silent assumptions would change scope, behavior, writes, ownership, or file targets.
+- Completion signals exist and fit the skill type and active mode.
+- Task skills were checked against `task-standard` and have required inputs, objective success criteria, source of truth, local anti-laziness gates, workflow, progressive references, mode/fallback rules, guardrails, output format, artifact verification, verification-failure handling, and a proof package.
+- Controller skills have core rule, priority or interaction model, active mode when needed, gates, red flags, handoff rules, and process verification.
+- Each major rule traces to a real failure mode, safety boundary, or success condition.
 - Findings include concrete file references, or the audit explicitly states that no findings were found in scope.
 
-Do not end an audit after a few style observations. End it after metadata, dependency surface, assets, portability, completion logic, and reported findings have all been checked for the requested scope.
+Do not end an audit after a few style observations. End it after metadata, dependency surface, assets, portability, ambiguity boundaries, type-specific structure, completion logic, and reported findings have all been checked for the requested scope.
