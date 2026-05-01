@@ -29,7 +29,7 @@ When `ai-doc-driven-dev` initializes or repairs a target repository, the preferr
     layout-and-styling.md
     logic-and-state.md
     verification.md
-    platform-runtime.md   # optional, only when the runtime imposes real project rules
+    platform-runtime.md   # required for mini program / runtime-constrained repos
     backend.md            # optional, only when a substantial backend surface exists
 
   docs/
@@ -53,7 +53,7 @@ Generation is conditional:
 - `rules/layout-and-styling.md` is created when the repository has meaningful CSS, layout, spacing, visual hierarchy, or responsive-construction rules.
 - `rules/logic-and-state.md` is created when the repository has meaningful component logic, composables, state, data flow, or event-handling rules.
 - `rules/verification.md` is created when tests or proof obligations need their own rule set.
-- `rules/platform-runtime.md` is created only when the platform itself constrains layout, runtime behavior, asset handling, or scrolling semantics.
+- `rules/platform-runtime.md` is created when the platform itself constrains layout, runtime behavior, asset handling, scrolling semantics, package layout, or subpackage ownership. It should be treated as required for mini program and uni-app repositories with `subPackages`.
 - `rules/backend.md` is created only when the repository has a substantial backend surface that deserves its own rule file.
 - `docs/requirements/` and `docs/design/` remain the canonical requirement and technical design locations.
 - `docs/analysis/` is created only for investigation, audit, or analysis artifacts.
@@ -71,7 +71,7 @@ rules/
   layout-and-styling.md
   logic-and-state.md
   verification.md
-  platform-runtime.md   # optional
+  platform-runtime.md
 ```
 
 Do not create `frontend.md` merely because the repository is a frontend repository. In that shape, `frontend.md` becomes a bucket that hides the real failure modes.
@@ -82,7 +82,7 @@ The preferred mapping is:
 - `layout-and-styling.md`: CSS/SCSS, rpx/px choices, spacing, visual hierarchy, Figma-to-layout translation, overflow, wrapping, and component shell constraints.
 - `logic-and-state.md`: Vue script logic, composables, stores, API calls, route payloads, event guards, loading/error/empty states, and interaction state.
 - `verification.md`: how tests and manual checks prove layout, state, interaction, and runtime contracts.
-- `platform-runtime.md`: mini program, uni-app, safe-area, scroll-view, native container, asset sync, and build-mode constraints when those constraints are frequent enough to deserve their own file.
+- `platform-runtime.md`: mini program, uni-app, subpackages, package-size pressure, safe-area, scroll-view, native container, asset sync, and build-mode constraints.
 
 ## File Responsibilities
 
@@ -95,7 +95,7 @@ It should include:
 - The docs-first workflow entry.
 - The requirement/design routing gate.
 - A statement that code rules live in `rules/*.md`.
-- A short rule index that tells Codex which rule file to read for shared code, layout and styling, logic and state, verification, and optional platform or backend concerns.
+- A short rule index that tells Codex which rule file to read for shared code, layout and styling, logic and state, verification, platform runtime, and optional backend concerns.
 - A reminder that `rules/` contains code rules only.
 
 It should not include:
@@ -189,10 +189,16 @@ Source-text assertions are allowed only when the source text itself is the contr
 
 ### `rules/platform-runtime.md`
 
-`rules/platform-runtime.md` is optional and should exist only when the platform itself imposes real constraints that are neither generic code rules nor pure layout rules.
+`rules/platform-runtime.md` exists when the platform itself imposes real constraints that are neither generic code rules nor pure layout rules.
+
+For mini program and uni-app repositories with `subPackages`, this file is expected, not optional. Subpackage ownership, asset placement, package-size pressure, and build-time asset synchronization are runtime constraints.
 
 Typical content:
 
+- `pages.json` as the page and subpackage ownership source of truth.
+- Main package vs subpackage page boundaries.
+- Subpackage asset placement and synchronization rules.
+- Package-size pressure and asset-replacement rules.
 - Mini program safe-area and scroll semantics.
 - Native container interactions.
 - Asset syncing and runtime packaging rules.
@@ -242,7 +248,7 @@ The skill should keep its current docs-first responsibilities:
 The code-standard responsibility changes:
 
 - Existing "pattern extraction" becomes responsibility-based code rules extraction and sync.
-- Extracted project-specific code conventions are written to target-repository `rules/*.md` buckets such as shared code, layout and styling, logic and state, verification, and any clearly justified optional platform or backend rules.
+- Extracted project-specific code conventions are written to target-repository `rules/*.md` buckets such as shared code, layout and styling, logic and state, verification, platform runtime, and any clearly justified optional backend rules.
 - The skill does not store project-specific code rules inside its own `SKILL.md`.
 - The skill does not generate a generic all-in-one code standards document under `docs/standards/` by default.
 
@@ -284,7 +290,7 @@ When extracting code rules, the skill should:
 
 1. Detect the repository type and major code areas.
 2. Inspect real code before writing rules.
-3. Separate shared rules from layout/styling, logic/state, verification, and any optional runtime or backend rules that the repository actually needs.
+3. Separate shared rules from layout/styling, logic/state, verification, runtime/platform, and any optional backend rules that the repository actually needs.
 4. Use the repository's change shape to decide the split. A UI-heavy repository should not be forced into a frontend/backend bucket if layout, state, and verification are the real failure modes.
 5. Create only the rule files justified by repository evidence.
 6. Preserve existing project-specific rules unless they conflict with stronger code evidence or user direction.
@@ -292,6 +298,8 @@ When extracting code rules, the skill should:
 8. Report which rule files were created, updated, skipped, or intentionally left unchanged.
 
 If multiple code areas exist in a monorepo, the first version should still prefer the top-level `rules/` directory unless the repository already has a stronger local convention.
+
+For mini program repositories, inspect `pages.json`, `manifest.json`, package roots such as `pagesA` / `pagesB`, asset-sync scripts, and npm scripts before deciding rule files. If development, test, or build scripts run a subpackage asset sync step, record that as a platform-runtime rule.
 
 ## Error Handling
 
@@ -325,7 +333,8 @@ For the skill implementation, verification should include:
 - Updating a repo with only shared code rules creates `AGENTS.md` and `rules/coding.md`.
 - Updating a UI-heavy repo creates or updates `rules/coding.md`, `rules/layout-and-styling.md`, `rules/logic-and-state.md`, and `rules/verification.md`.
 - Updating a repo with a substantial backend surface may also create or update `rules/backend.md`.
-- Updating a runtime-constrained repo may also create or update `rules/platform-runtime.md`.
+- Updating a runtime-constrained repo creates or updates `rules/platform-runtime.md`.
+- Updating a mini program repo with `subPackages` records page ownership, subpackage asset sync, and package-size constraints in `rules/platform-runtime.md`.
 - Existing requirement/design docs remain under `docs/requirements/` and `docs/design/`.
 - Existing non-code standards under `docs/standards/` are preserved.
 - Code rules are not written into `docs/standards/` by default.
