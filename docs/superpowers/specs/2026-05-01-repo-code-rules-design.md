@@ -8,6 +8,14 @@ Date: 2026-05-01
 
 The `rules/` directory is only for code rules. It does not replace requirement docs, technical design docs, analysis docs, or workflow instructions.
 
+For UI-heavy repositories, the best split is usually by responsibility, not by file extension:
+
+- layout and styling
+- logic and state
+- verification
+
+That split matches how front-end changes actually fail. A CSS/layout bug is usually a geometry or overflow problem, not a CSS-only problem. A JS/state bug usually affects rendering, interaction, or data flow. A test that only rewrites the implementation is usually not a useful test.
+
 ## Target Repository Shape
 
 When `ai-doc-driven-dev` initializes or repairs a target repository, the preferred generated structure is:
@@ -18,9 +26,11 @@ When `ai-doc-driven-dev` initializes or repairs a target repository, the preferr
 
   rules/
     coding.md
-    frontend.md
-    backend.md
-    testing.md
+    layout-and-styling.md
+    logic-and-state.md
+    verification.md
+    platform-runtime.md   # optional, only when the runtime imposes real project rules
+    backend.md            # optional, only when a substantial backend surface exists
 
   docs/
     requirements/
@@ -40,14 +50,39 @@ Generation is conditional:
 
 - `AGENTS.md` is the Codex entry point.
 - `rules/coding.md` is created when code rules are initialized or extracted.
-- `rules/frontend.md` is created only when the repository has frontend code or frontend-specific conventions.
-- `rules/backend.md` is created only when the repository has backend code or backend-specific conventions.
-- `rules/testing.md` is created only when testing conventions are detected or need separate rules.
+- `rules/layout-and-styling.md` is created when the repository has meaningful CSS, layout, spacing, visual hierarchy, or responsive-construction rules.
+- `rules/logic-and-state.md` is created when the repository has meaningful component logic, composables, state, data flow, or event-handling rules.
+- `rules/verification.md` is created when tests or proof obligations need their own rule set.
+- `rules/platform-runtime.md` is created only when the platform itself constrains layout, runtime behavior, asset handling, or scrolling semantics.
+- `rules/backend.md` is created only when the repository has a substantial backend surface that deserves its own rule file.
 - `docs/requirements/` and `docs/design/` remain the canonical requirement and technical design locations.
 - `docs/analysis/` is created only for investigation, audit, or analysis artifacts.
 - `docs/standards/` remains optional and should not be the default location for code rules.
 
 There is no `rules/README.md`. `AGENTS.md` owns rule discovery and indexing.
+
+## UI-Heavy Repository Example
+
+For a front-end-only repository such as a Vue / uni-app mini program, the first generated `rules/` shape should usually be:
+
+```text
+rules/
+  coding.md
+  layout-and-styling.md
+  logic-and-state.md
+  verification.md
+  platform-runtime.md   # optional
+```
+
+Do not create `frontend.md` merely because the repository is a frontend repository. In that shape, `frontend.md` becomes a bucket that hides the real failure modes.
+
+The preferred mapping is:
+
+- `coding.md`: shared naming, file organization, formatting, dependency rules, and maintainability boundaries.
+- `layout-and-styling.md`: CSS/SCSS, rpx/px choices, spacing, visual hierarchy, Figma-to-layout translation, overflow, wrapping, and component shell constraints.
+- `logic-and-state.md`: Vue script logic, composables, stores, API calls, route payloads, event guards, loading/error/empty states, and interaction state.
+- `verification.md`: how tests and manual checks prove layout, state, interaction, and runtime contracts.
+- `platform-runtime.md`: mini program, uni-app, safe-area, scroll-view, native container, asset sync, and build-mode constraints when those constraints are frequent enough to deserve their own file.
 
 ## File Responsibilities
 
@@ -60,7 +95,7 @@ It should include:
 - The docs-first workflow entry.
 - The requirement/design routing gate.
 - A statement that code rules live in `rules/*.md`.
-- A short rule index that tells Codex which rule file to read for implementation, frontend work, backend work, and tests.
+- A short rule index that tells Codex which rule file to read for shared code, layout and styling, logic and state, verification, and optional platform or backend concerns.
 - A reminder that `rules/` contains code rules only.
 
 It should not include:
@@ -83,22 +118,89 @@ Typical content:
 - Dependency and abstraction rules.
 - Cross-cutting maintainability rules.
 
-### `rules/frontend.md`
+### `rules/layout-and-styling.md`
 
-`rules/frontend.md` contains frontend-only conventions.
+`rules/layout-and-styling.md` contains rules for how the UI should be built and constrained.
 
 Typical content:
 
-- Component structure.
-- State management.
-- API call boundaries.
-- Styling conventions.
-- Accessibility expectations.
-- Frontend test conventions when they are tightly coupled to frontend code.
+- Component shell and composition boundaries.
+- Flex/grid/flow choices.
+- Spacing, sizing, wrapping, and overflow rules.
+- Typography, color, radius, and visual hierarchy rules.
+- Asset usage and icon treatment.
+- Responsive and container-aware layout rules.
+
+This file should express geometry and presentation intent, not mirror CSS line by line.
+
+### `rules/logic-and-state.md`
+
+`rules/logic-and-state.md` contains rules for component behavior and data flow.
+
+Typical content:
+
+- Component logic structure.
+- Composables and reusable state helpers.
+- Store boundaries and state ownership.
+- API calls and async flow rules.
+- Event handling and side-effect rules.
+- Guard conditions and loading/error/empty state handling.
+
+### `rules/verification.md`
+
+`rules/verification.md` contains rules for proving the code works.
+
+Typical content:
+
+- Unit, integration, visual, and E2E verification boundaries.
+- Test naming and scenario naming.
+- Fixture, mock, and runtime stub conventions.
+- Required verification commands.
+- Geometry, overflow, overlap, visibility, and state-coverage assertions.
+- Rules for adding tests or proofs with feature changes or bug fixes.
+
+This file should describe observable contracts, not reproduce implementation details. If a test is mostly a copy of the code it claims to verify, the verification rule is wrong.
+
+#### Verification Model
+
+Verification rules should turn requirements into observable contracts:
+
+```text
+source of truth -> observable contract -> implementation -> proof
+```
+
+For layout and styling, good contracts include:
+
+- distance from A to B
+- container inset and sibling gap
+- rendered width, height, or minimum touch area
+- no overlap, clipping, accidental horizontal scroll, or broken wrapping
+- visible state after a user action or data-state change
+- scroll viewport height and bottom safe-area behavior
+
+For logic and state, good contracts include:
+
+- state transition from input/event A to visible result B
+- API payload, route payload, or emitted event shape
+- loading, empty, error, permission, and logged-out branches
+- idempotency or refresh behavior after navigation return
+
+Source-text assertions are allowed only when the source text itself is the contract, such as banning a deprecated import, requiring a specific asset path, or preventing a known forbidden API. Source-text assertions should not be the default way to prove CSS layout.
+
+### `rules/platform-runtime.md`
+
+`rules/platform-runtime.md` is optional and should exist only when the platform itself imposes real constraints that are neither generic code rules nor pure layout rules.
+
+Typical content:
+
+- Mini program safe-area and scroll semantics.
+- Native container interactions.
+- Asset syncing and runtime packaging rules.
+- Platform-specific build modes or environment contracts.
 
 ### `rules/backend.md`
 
-`rules/backend.md` contains backend-only conventions.
+`rules/backend.md` is optional and should exist only when the repository contains a substantial backend surface.
 
 Typical content:
 
@@ -108,18 +210,6 @@ Typical content:
 - Transaction and idempotency rules.
 - Background job or queue conventions.
 - Backend observability rules.
-
-### `rules/testing.md`
-
-`rules/testing.md` contains repository testing conventions when they deserve their own file.
-
-Typical content:
-
-- Unit, integration, and E2E test boundaries.
-- Test file naming.
-- Fixture and mock conventions.
-- Required verification commands.
-- Rules for adding tests with feature changes or bug fixes.
 
 ### `docs/requirements/`
 
@@ -151,8 +241,8 @@ The skill should keep its current docs-first responsibilities:
 
 The code-standard responsibility changes:
 
-- Existing "pattern extraction" becomes code rules extraction and sync.
-- Extracted project-specific code conventions are written to target-repository `rules/*.md`.
+- Existing "pattern extraction" becomes responsibility-based code rules extraction and sync.
+- Extracted project-specific code conventions are written to target-repository `rules/*.md` buckets such as shared code, layout and styling, logic and state, verification, and any clearly justified optional platform or backend rules.
 - The skill does not store project-specific code rules inside its own `SKILL.md`.
 - The skill does not generate a generic all-in-one code standards document under `docs/standards/` by default.
 
@@ -194,11 +284,12 @@ When extracting code rules, the skill should:
 
 1. Detect the repository type and major code areas.
 2. Inspect real code before writing rules.
-3. Separate shared rules from frontend, backend, and testing rules.
-4. Create only the rule files justified by repository evidence.
-5. Preserve existing project-specific rules unless they conflict with stronger code evidence or user direction.
-6. Keep docs-first workflow content in `AGENTS.md` and docs, not in `rules/`.
-7. Report which rule files were created, updated, skipped, or intentionally left unchanged.
+3. Separate shared rules from layout/styling, logic/state, verification, and any optional runtime or backend rules that the repository actually needs.
+4. Use the repository's change shape to decide the split. A UI-heavy repository should not be forced into a frontend/backend bucket if layout, state, and verification are the real failure modes.
+5. Create only the rule files justified by repository evidence.
+6. Preserve existing project-specific rules unless they conflict with stronger code evidence or user direction.
+7. Keep docs-first workflow content in `AGENTS.md` and docs, not in `rules/`.
+8. Report which rule files were created, updated, skipped, or intentionally left unchanged.
 
 If multiple code areas exist in a monorepo, the first version should still prefer the top-level `rules/` directory unless the repository already has a stronger local convention.
 
@@ -216,6 +307,12 @@ If the repository has no clear code conventions:
 - Do not invent detailed standards without code evidence.
 - Mark missing evidence explicitly in the response instead of filling the gap with generic advice.
 
+If a test file mostly restates the implementation it claims to verify:
+
+- Convert the rule into an observable-contract rule instead of preserving the duplicate structure.
+- Prefer geometry, state, rendering, and behavior assertions over implementation cloning.
+- Keep CSS-related verification focused on measurable layout and visual outcomes.
+
 If `AGENTS.md`, `CLAUDE.md`, or other instruction files conflict:
 
 - Treat `AGENTS.md` as the Codex primary entry point.
@@ -226,13 +323,14 @@ If `AGENTS.md`, `CLAUDE.md`, or other instruction files conflict:
 For the skill implementation, verification should include:
 
 - Updating a repo with only shared code rules creates `AGENTS.md` and `rules/coding.md`.
-- Updating a frontend repo creates or updates `rules/coding.md` and `rules/frontend.md`.
-- Updating a backend repo creates or updates `rules/coding.md` and `rules/backend.md`.
-- Updating a full-stack repo separates shared, frontend, backend, and testing conventions.
+- Updating a UI-heavy repo creates or updates `rules/coding.md`, `rules/layout-and-styling.md`, `rules/logic-and-state.md`, and `rules/verification.md`.
+- Updating a repo with a substantial backend surface may also create or update `rules/backend.md`.
+- Updating a runtime-constrained repo may also create or update `rules/platform-runtime.md`.
 - Existing requirement/design docs remain under `docs/requirements/` and `docs/design/`.
 - Existing non-code standards under `docs/standards/` are preserved.
 - Code rules are not written into `docs/standards/` by default.
 - `AGENTS.md` indexes `rules/*.md` without duplicating their full content.
+- Verification rules describe proof obligations, not implementation source code.
 
 ## Open Scope
 
