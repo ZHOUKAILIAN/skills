@@ -79,7 +79,7 @@ Do not create `frontend.md` merely because the repository is a frontend reposito
 The preferred mapping is:
 
 - `coding.md`: shared naming, file organization, formatting, dependency rules, and maintainability boundaries.
-- `layout-and-styling.md`: CSS/SCSS, rpx/px choices, spacing, visual hierarchy, Figma-to-layout translation, overflow, wrapping, and component shell constraints.
+- `layout-and-styling.md`: CSS/SCSS, rpx/px choices, spacing, visual hierarchy, Figma-to-layout translation, overflow, wrapping, component shell constraints, and reuse of existing UI library components.
 - `logic-and-state.md`: Vue script logic, composables, stores, API calls, route payloads, event guards, loading/error/empty states, and interaction state.
 - `verification.md`: how tests and manual checks prove layout, state, interaction, and runtime contracts.
 - `platform-runtime.md`: mini program, uni-app, subpackages, package-size pressure, safe-area, scroll-view, native container, asset sync, and build-mode constraints.
@@ -121,10 +121,12 @@ Typical content:
 ### `rules/layout-and-styling.md`
 
 `rules/layout-and-styling.md` contains rules for how the UI should be built and constrained.
+It also decides when to reuse an existing UI library component instead of building a new one.
 
 Typical content:
 
 - Component shell and composition boundaries.
+- Prefer existing uview or other UI library components when they already satisfy the contract.
 - Flex/grid/flow choices.
 - Spacing, sizing, wrapping, and overflow rules.
 - Typography, color, radius, and visual hierarchy rules.
