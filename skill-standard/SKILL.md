@@ -5,60 +5,36 @@ description: Use when evaluating, auditing, or improving SKILL.md content agains
 
 # Skill Standard
 
-Route skill writing, auditing, or improvement work to the right standard before judging content.
+Use this as the single authoring and audit standard for skills in this repository. A good skill reduces a repeated model failure mode with the smallest clear rules needed to change behavior, then defines how completion is proven.
 
-A good skill reduces repeated model failure modes with the minimum set of clear rules needed to change behavior. This skill is the dispatcher for that review, not the place to expand every type-specific rule.
+## Core Rule
 
-## Dispatch Rule
+A skill is acceptable only when its trigger, behavior boundary, source of truth, stop conditions, and completion proof are explicit enough that another agent can use it without guessing.
 
-If a type-specific standard applies, use it before making final judgments.
+Wrong: "Be careful and produce high quality work."
+Right: "Read the source artifact, account for every in-scope item, run the verifier, and report pass/fail evidence."
 
-Do not rely on memory of the standard. Standards change. Load the relevant sub-skill when its type applies.
+## Review Workflow
 
-| Skill type | Use this standard | When |
-| --- | --- | --- |
-| Task skill | `task-standard` | The skill executes work and produces a verifiable artifact or task outcome |
-| Controller skill | This file for now | The skill governs routing, sequencing, gates, or verification across tasks |
+1. Read the target `SKILL.md`, `skill.json`, and any skill-local assets that shape behavior.
+2. Classify the active behavior as task, controller, reference, or mixed.
+3. Apply the universal standard to every skill.
+4. Apply the relevant type addendum in this file.
+5. Make the smallest fix that closes the verified failure mode.
+6. Verify metadata, dependency surface, paths, and completion signals before closing.
 
-If the target skill is mixed, choose the active mode first. Apply `task-standard` to task modes and the controller section here to controller modes. Do not force one checklist across modes.
+If the skill is mixed, choose the active mode before judging it. Do not force one completion signal across materially different modes.
 
-## Dispatch Flow
-
-```text
-User asks to write/audit/improve a skill
-  -> Read SKILL.md and skill.json
-  -> Classify primary type
-     -> Task skill? Apply task-standard
-     -> Controller skill? Apply controller section in this file
-     -> Mixed? Select active mode, then apply the matching standard
-  -> Apply universal standard
-  -> Report findings or make the smallest needed fix
-```
-
-## Red Flags
-
-These thoughts mean stop and dispatch:
-
-| Thought | Correct action |
-| --- | --- |
-| "This is obviously a task skill, I can judge it from the generic checklist." | Load or apply `task-standard`. |
-| "The task skill says be careful, that is enough." | Check for task-local gates, verification, and proof package. |
-| "This skill has several modes, but one completion signal is fine." | Require active mode and mode-specific completion checks. |
-| "The dependency is mentioned in prose, so skill.json is optional." | Declare the dependency in `skill.json.sub_skills`. |
-| "I can add detailed task rules to skill-standard." | Put task-specific rules in the task skill or in `task-standard`. |
-
-## Skill Type Gate
-
-Before judging a skill, classify it as one primary type:
+## Skill Types
 
 | Type | Purpose | Examples |
 | --- | --- | --- |
-| Task skill | Helps the agent complete a concrete class of work and produce a task artifact | Figma restoration, customer-service troubleshooting, E2E coverage generation, CSS review |
-| Controller skill | Changes how the agent chooses, sequences, gates, or verifies work across tasks | Skill lifecycle, docs-first workflow, debugging discipline, skill-use policy |
+| Task skill | Executes work and produces a verifiable artifact or task outcome | Figma restoration, customer-service troubleshooting, E2E coverage generation |
+| Controller skill | Governs sequencing, routing, gates, or handoffs across work | Skill lifecycle, docs-first workflow, debugging discipline |
+| Reference skill | Provides standards or constraints to apply inside another task | CSS rules, style guides, API usage rules |
+| Mixed skill | Contains multiple modes with different outputs or gates | Create/review/sync/ship lifecycle skills |
 
-Reference or constraint skills are usually task skills with a narrow artifact: they provide standards that must be applied while doing work. If a skill mostly tells the agent how to govern its own process, audit it as a controller skill.
-
-If a skill mixes both types, require an explicit active mode before applying type-specific completion checks. Do not force one completion rule across materially different modes.
+Reference skills usually need task-like proof for the artifact they constrain. If a reference skill mainly controls sequencing, audit that part as controller behavior.
 
 ## Universal Standard
 
@@ -66,12 +42,10 @@ Every `SKILL.md` must satisfy these rules regardless of type.
 
 ### 1. Discovery Metadata Is Trigger-Only
 
-The frontmatter `description` and `skill.json.description` must describe when to use the skill, not summarize the whole workflow.
+The frontmatter `description` and `skill.json.description` must describe when to use the skill, not summarize the workflow.
 
 Good: "Use when investigating a customer service issue that requires logs, code, data, and root-cause explanation."
 Bad: "Use to ask questions, query logs, read code, query database, write Feishu report, then ask whether to fix."
-
-Why: workflow summaries in metadata tempt the agent to act from metadata instead of reading the full skill.
 
 ### 2. Semantically Clear, No Ambiguity
 
@@ -82,7 +56,7 @@ Bad: "Update model."
 
 ### 3. One Skill, One Behavior Boundary
 
-A skill should own one coherent behavior boundary. Split when two parts have different triggers, different safety rules, or different completion signals.
+A skill should own one coherent behavior boundary. Split only when two parts have different triggers, safety rules, or completion signals that would make one skill confusing.
 
 Good: one read-only Figma review skill and one implementation/restoration skill.
 Bad: one Figma skill that sometimes reviews, sometimes edits, sometimes creates tests, with one vague completion rule.
@@ -138,26 +112,101 @@ Use short contrasts for non-obvious rules. They are more useful than long tutori
 Good: "Wrong: create standalone bugfix docs. Right: update the owning requirement/design pair."
 Bad: multiple paragraphs explaining the philosophy without changing the next action.
 
-## Task Skill Standard
+## Task Skill Addendum
 
-Use `task-standard` for detailed rules when writing, auditing, or improving a task skill.
+Use this section when a skill executes work and produces a verifiable artifact or task outcome.
 
-A task skill executes a concrete class of work and produces a verifiable task artifact. This file only defines the routing and quality gate; `task-standard` owns the detailed task-skill standard.
+### Required Shape
 
-When a target skill is a task skill, use `task-standard` before editing or closing the audit.
+A task skill should usually contain:
 
-At this level, the audit only needs to confirm that the task skill has:
+- `Goal`: the artifact or outcome the task must produce.
+- `When To Use` and `When Not To Use`: routing boundaries.
+- `Required Inputs`: information needed before safe execution.
+- `Source Of Truth`: authoritative facts, docs, data, design, logs, code, or user instructions.
+- `Mode And Fallback Rules`: preferred path, allowed fallbacks, and stop conditions.
+- `Workflow`: ordered phases or a decision tree.
+- `Local Anti-Laziness Gates`: task-specific checks that block known shortcuts.
+- `Available Assets`: scripts, templates, references, APIs, CLIs, or helpers.
+- `Guardrails`: read/write boundaries, credentials, environment, approval, and safety limits.
+- `Success Criteria`: objective conditions that prove the artifact is acceptable.
+- `Verification`: how those criteria are checked.
+- `Proof Package`: what evidence the final answer must report.
 
-- A concrete artifact or outcome.
-- Objective success criteria.
-- A named source of truth.
-- Task-local anti-laziness gates near the workflow they control.
-- Verification and failed-verification behavior.
-- A proof package requirement for the final output.
+Only include sections that materially change behavior. A narrow task skill can combine related sections when the checks stay clear.
 
-If any of those are missing, invoke or apply `task-standard` and fix the task skill there instead of expanding this general standard.
+### Source Of Truth
 
-## Controller Skill Standard
+Every task skill must name the authority for facts and acceptance.
+
+Examples:
+
+- Official docs for API guidance.
+- Figma node data for exact design restoration.
+- User-provided Feishu records for change scope.
+- Runtime logs, code, and database records for incident investigation.
+- Rendered artifact output for documents, slides, sheets, images, and web pages.
+
+Screenshots, summaries, memory, and model guesses can support the task only when the skill says they are acceptable sources.
+
+### Local Gates
+
+Anti-laziness gates must live near the workflow they block. The shared standard can name the pattern; the task skill must name the exact shortcut and exact check.
+
+For each task skill, ask:
+
+1. What shortcut would let the agent falsely claim completion?
+2. What observable artifact proves the shortcut did not happen?
+3. What mechanical check can inspect that artifact?
+4. What must happen if the check fails?
+
+Good: "Node ledger verification must pass before Figma implementation starts."
+Bad: "Inspect the design carefully."
+
+### Gate Patterns
+
+Use only the gate patterns that fit the task.
+
+Scope accounting: require an item ledger when the task processes multiple nodes, pages, records, slides, rows, files, routes, screenshots, tests, or user journeys. The ledger needs stable identity, status, exclusion or blocked reasons, and completion proof. Default stance: zero unaccounted in-scope items.
+
+Gate artifacts: when a later phase depends on earlier evidence, require a concrete artifact such as a node ledger, rendered screenshot set, recalculation output, DOM snapshot, log evidence table, or test discovery summary. Later phases must consume that artifact.
+
+Mechanical verification: use validators, renderers, linters, type checks, recalculators, screenshots, visual diffs, DOM snapshots, log queries, SQL/API count checks, or file-content checks when practical. If not practical, define the manual inspection evidence required.
+
+Failed-gate behavior: when verification fails, either fix the failed criterion and re-run the check, or stop and report `not ready` with evidence. Do not continue past a blocking gate and still claim completion.
+
+### Modes And Fallbacks
+
+If a task can run in multiple modes, choose one mode before execution.
+
+Fallback rules must say:
+
+- preferred path
+- fallback trigger
+- whether user approval is required
+- whether fallback changes output quality, safety, credentials, or verification
+- what to do if fallback is unavailable
+
+Fallback is never permission to bypass the source of truth, safety boundary, or completion signal.
+
+### Success Criteria And Proof Package
+
+Success criteria must be objective enough to check.
+
+Good: "All in-scope records are accounted for, generated tests follow existing naming conventions, and skipped execution is reported with reason."
+Bad: "Write a useful report."
+
+The final output must report evidence, not confidence:
+
+- Artifact produced or changed.
+- Source-of-truth inputs inspected.
+- Scope counts when the task is multi-item.
+- Verification checks run and pass/fail status.
+- Skipped or impossible checks with reason.
+- Failed gates and whether they were fixed, re-run, or left as blockers.
+- Residual risk only when it affects confidence in completion.
+
+## Controller Skill Addendum
 
 Use this section for skills that govern how the agent sequences, routes, delegates, or verifies work.
 
@@ -175,10 +224,10 @@ A controller skill should usually contain:
 
 ### Control The Decision, Not The Artifact
 
-Controller skills should focus on sequencing and guardrails. They should not duplicate the detailed task instructions of the skills they route to.
+Controller skills should focus on sequencing and guardrails. They should not duplicate detailed task instructions that belong in the task skill being routed to.
 
-Good: "Choose improve mode, read current skill artifacts, fix the smallest verified failure, then apply `skill-standard`."
-Bad: repeat the full contents of `skill-standard` inside `skill-lifecycle`.
+Good: "`skill-lifecycle` owns create/improve/sync/ship flow; `skill-standard` owns the quality gate."
+Bad: repeat the full contents of a downstream task workflow inside the controller.
 
 ### Active Mode Is Mandatory For Multi-Entry Skills
 
@@ -195,19 +244,24 @@ Good: "This is just a quick fix" -> still route the doc owner first.
 Good: "The first few nodes show the pattern" -> keep reading every in-scope node.
 Bad: generic advice such as "be careful" or "think deeply."
 
-### Handoffs Must Be Explicit
+## Red Flags
 
-If the controller depends on another skill or phase, name when the handoff happens and what the next skill owns.
+These thoughts indicate the standard is about to be weakened:
 
-Good: "`skill-lifecycle` owns create/improve/sync/ship flow; `skill-standard` owns the quality gate."
-Bad: "Use other relevant standards as needed."
+| Thought | Correct action |
+| --- | --- |
+| "The metadata is enough; the body can explain the rest." | Keep metadata trigger-only and put workflow in `SKILL.md`. |
+| "The task skill says be careful, that is enough." | Add task-local gates, verification, and proof package requirements. |
+| "This skill has several modes, but one completion signal is fine." | Require active mode and mode-specific completion checks. |
+| "The dependency is mentioned in prose, so skill.json is optional." | Declare the dependency in `skill.json.sub_skills`. |
+| "This rule is generally good advice." | Keep it only if it closes a real failure mode or success condition. |
 
 ## Audit Checklist
 
 An audit or improvement pass using this standard is complete only when all applicable checks are done:
 
-- The skill type is classified as task or controller. Mixed skills have an explicit active mode.
-- The relevant type-specific standard was applied: `task-standard` for task skills; controller section here for controller skills.
+- The skill type is classified as task, controller, reference, or mixed.
+- Mixed skills have an explicit active mode before type-specific checks are applied.
 - `SKILL.md` frontmatter and `skill.json` names/descriptions are checked for consistency.
 - Descriptions are trigger-only and do not summarize workflow.
 - Skill dependencies are checked against `skill.json.sub_skills`.
@@ -215,7 +269,7 @@ An audit or improvement pass using this standard is complete only when all appli
 - Paths are portable and skill-local unless the skill is explicitly environment-specific.
 - Stop-and-ask boundaries exist where silent assumptions would change scope, behavior, writes, ownership, or file targets.
 - Completion signals exist and fit the skill type and active mode.
-- Task skills were checked against `task-standard` and have required inputs, objective success criteria, source of truth, local anti-laziness gates, workflow, progressive references, mode/fallback rules, guardrails, output format, artifact verification, verification-failure handling, and a proof package.
+- Task skills have required inputs, objective success criteria, source of truth, local anti-laziness gates, workflow, mode/fallback rules, guardrails, artifact verification, verification-failure handling, and a proof package.
 - Controller skills have core rule, priority or interaction model, active mode when needed, gates, red flags, handoff rules, and process verification.
 - Each major rule traces to a real failure mode, safety boundary, or success condition.
 - Findings include concrete file references, or the audit explicitly states that no findings were found in scope.

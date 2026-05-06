@@ -14,7 +14,12 @@ Read every visible node inside the restoration boundary until no child nodes rem
 
 ## Governing Rule
 
-When the user asks for exact restoration, this skill governs fidelity decisions. In that mode, Figma is the primary visual source of truth. Existing design-system components, project tokens, or prior code may be reused only after proving they preserve the audited geometry, structure, and state coverage.
+When the user asks for exact restoration, this skill governs fidelity decisions. In that mode, Figma is the primary visual source of truth for layout, geometry, typography, color, assets, visual hierarchy, and visual state examples. Existing design-system components, project tokens, or prior code may be reused only after proving they preserve the audited geometry, structure, and state coverage.
+
+Figma is not automatically the source of truth for business content, data fields, permissions, conditional branches, ranking, filtering, counts, copy ownership, or which records should render. Those must come from the user request, product requirements, existing implementation, API contracts, schema, runtime data, or another explicit business source.
+
+Wrong: hardcode the sample names, counts, tabs, or selected rows shown in Figma because they are visible in the design.
+Right: use Figma to restore the visual treatment of names, counts, tabs, and selected rows, then map the actual values and display conditions to business logic.
 
 ## When To Use
 
@@ -34,6 +39,7 @@ The verifier script checks the minimum audit contract for the boundary README an
 Before implementation, produce audit artifacts for the restoration boundary:
 
 - A boundary README that records scope, node classification decisions, derived spacing, vertical closure, shell-node notes, state matrix, verification status, and unresolved unknowns
+- A business logic source map that separates Figma sample content from product-owned content, data fields, and conditional display rules
 - A complete node ledger listing every in-scope visible node with expansion status and completion proof
 
 If these artifacts are missing, the audit is not complete.
@@ -88,6 +94,25 @@ List every in-scope state before writing code. This includes selection states, v
 
 Do not implement from a default screenshot alone. If a state exists in the boundary and affects layout, content, or styling, it must appear in the state matrix.
 
+The state matrix must distinguish:
+
+- **Figma visual state** — a visual example shown in the node boundary, such as selected, disabled, empty, highlighted, or expanded styling
+- **Business-driven state** — a state that decides what data or branch renders, such as permissions, ownership, capacity, user role, API status, or record membership
+
+If Figma shows only one sample of a business-driven state, do not infer the full product rule from that sample. Read the implementation, requirements, API/schema, or ask the user when the business source cannot be discovered.
+
+### Business logic owns uncertain display decisions
+
+Before implementing text content, list items, counts, field labels, eligibility rules, visibility conditions, sorting, filtering, or selected/default branches, identify the business source that owns each decision.
+
+Acceptable business sources include:
+
+- Existing source code, component props, stores, hooks, API clients, route loaders, or server handlers
+- Product requirements, technical design docs, API contracts, schemas, fixtures, or seeded data
+- Explicit user instructions in the current task
+
+If a Figma node is only sample content, use it to restore style and layout, not to create product behavior. If no business source exists for an implementation-affecting decision, record the unknown and stop to ask before hardcoding behavior.
+
 ### Complete node ledger before implementation
 
 Do not write tests or production code until the node ledger is complete. Every in-scope visible node must be recursively expanded until it has no child nodes — do not stop at an instance shell, outer frame, or apparently complete layer.
@@ -126,7 +151,7 @@ For each major container, prove: `top inset + internal gaps + content heights + 
 
 ### Refine before rewriting
 
-Search the existing codebase first. If a rough version exists, refine that file directly. Only create a new implementation if none exists or the user explicitly requests it.
+Search the existing codebase first. If a rough version exists, refine that file directly and trace its data flow before replacing content or display logic. Only create a new implementation if none exists or the user explicitly requests it.
 
 ### Follow project conventions
 
@@ -135,6 +160,10 @@ Check the project's measurement system (px, rpx, rem, etc.) and stay consistent 
 ### Reuse existing code only with parity proof
 
 Reusing an existing component is allowed only when it can be shown to preserve the audited structure, geometry, assets, and states. If reuse forces the implementation away from the audited result, do not reuse it.
+
+### Do not overwrite business logic with Figma samples
+
+When existing code already defines data mapping, permissions, state transitions, or conditional rendering, preserve that business behavior unless the user explicitly asks to change it or a product source proves it is wrong. Figma may require restyling the rendered branches; it does not by itself authorize replacing the branch logic.
 
 ### Figma values outrank project defaults in exact-restoration mode
 
@@ -157,6 +186,8 @@ Every audit must cover:
 - Icon and button sizes
 - State differences (default, selected, disabled, hover, empty, full, etc.) as a state matrix
 - All visible text, images, icons, SVG assets
+- Business logic source map for every dynamic text, list, count, selected/default branch, permission branch, and conditional display rule
+- Figma sample-content decisions: whether each visible value is copied literally, bound to business data, replaced by existing copy, or left as an unresolved unknown
 - Design tokens or variables
 - Shell vs real visible bounds discrepancies
 - Node classification result for each special node: renderable, platform-native, interaction-proxy, or annotation/demo-only
@@ -174,6 +205,8 @@ Do not claim restoration based on a single signal. All five layers are required:
 5. **State coverage** — every in-scope state has a matching implementation and verification result
 
 Geometry verification must include a `css-best-practices` check. Any `absolute` or `fixed` positioning in the restored boundary must have a recorded reason tied to an out-of-flow layer.
+
+Content verification must include a business-source check. Static Figma copy may be compared literally only when it is confirmed as product-owned copy. Dynamic content must be verified against the code path, API/schema, fixture, or user-provided rule that owns it.
 
 Use measurable thresholds. Do not use "looks close" as a verification result.
 
@@ -194,6 +227,7 @@ The task is complete only when ALL of the following are verified:
 9. No unresolved critical unknowns remain in the ledger.
 10. Any reused component or token has parity proof, or the deviation is explicitly recorded.
 11. Every non-renderable node has an explicit handling decision: platform delegation, behavior translation, or justified exclusion.
+12. Every business-affecting text, data field, list item, count, selected/default branch, permission branch, and conditional display rule has a recorded business source or an explicit unresolved unknown.
 
 If any item is missing, say so explicitly — do not soften it into "mostly restored".
 

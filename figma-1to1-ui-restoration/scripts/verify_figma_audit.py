@@ -14,6 +14,7 @@ README_REQUIRED_HEADINGS = [
     "## Derived Spacing",
     "## Vertical Closure Check",
     "## State Matrix",
+    "## Business Logic Source Map",
     "## Shell vs Real Visible Bounds",
     "## Unexpanded Nodes",
     "## Verification Summary",
@@ -26,6 +27,7 @@ README_REQUIRED_OUTCOME_KEYS = [
     "Derived spacing coverage:",
     "Vertical closure:",
     "State-matrix coverage:",
+    "Business logic source coverage:",
     "Non-renderable review:",
     "Critical unknowns:",
     "Ready for implementation:",
@@ -87,12 +89,14 @@ def validate_readme(readme_text: str) -> list[str]:
     vertical_closure = parse_outcome_value(readme_text, "Vertical closure:")
     implementation_ready = parse_outcome_value(readme_text, "Ready for implementation:")
     state_coverage = parse_outcome_value(readme_text, "State-matrix coverage:")
+    business_logic_source_coverage = parse_outcome_value(readme_text, "Business logic source coverage:")
     non_renderable_review = parse_outcome_value(readme_text, "Non-renderable review:")
     critical_unknowns = parse_outcome_value(readme_text, "Critical unknowns:")
 
     require(terminal_coverage is not None, "README is missing terminal coverage value", errors)
     require(vertical_closure is not None, "README is missing vertical closure value", errors)
     require(state_coverage is not None, "README is missing state-matrix coverage value", errors)
+    require(business_logic_source_coverage is not None, "README is missing business logic source coverage value", errors)
     require(non_renderable_review is not None, "README is missing non-renderable review value", errors)
     require(critical_unknowns is not None, "README is missing critical unknowns value", errors)
     require(implementation_ready is not None, "README is missing implementation readiness value", errors)
@@ -111,6 +115,12 @@ def validate_readme(readme_text: str) -> list[str]:
         require(
             state_coverage is not None and state_coverage.lower() in {"100%", "yes", "complete", "all states covered"},
             "README cannot mark implementation ready unless state-matrix coverage is complete",
+            errors,
+        )
+        require(
+            business_logic_source_coverage is not None
+            and business_logic_source_coverage.lower() in {"100%", "yes", "complete", "all mapped"},
+            "README cannot mark implementation ready unless business logic source coverage is complete",
             errors,
         )
         require(

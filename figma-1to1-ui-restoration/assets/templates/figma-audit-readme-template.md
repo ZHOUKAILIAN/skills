@@ -1,17 +1,17 @@
 # {{date}} Figma Node `{{root_node}}` Audit
 
-## Scope
+## Boundary and Scope
 
 - Figma file: `{{file_key}}`
 - Root node: `{{root_node}}` `{{root_name}}`
 - Source link: `{{figma_url}}`
 - Purpose: {{purpose}}
-
-## Boundary Rule
-
 - Requested boundary: {{boundary_rule}}
 - Included states: {{included_states}}
 - Excluded states or out-of-scope areas: {{excluded_scope}}
+- Business source(s): {{business_sources}}
+- Implementation target(s): {{implementation_targets}}
+- Figma sample-content rule: {{figma_sample_rule}}
 
 ## Read Basis
 
@@ -53,6 +53,13 @@ flowchart TD
 | w / h | `{{root_width}} x {{root_height}}` |
 | Visual role | {{visual_role}} |
 | Background token | `{{background_token}}` |
+
+## Node Classification and Handling
+
+| Node | Classification | Handling decision | Business impact |
+| --- | --- | --- | --- |
+| `{{classified_node_1}}` | {{classification_1}} | {{handling_decision_1}} | {{business_impact_1}} |
+| `{{classified_node_2}}` | {{classification_2}} | {{handling_decision_2}} | {{business_impact_2}} |
 
 ## Vertical Rhythm
 
@@ -111,11 +118,19 @@ flowchart TD
 
 ## State Matrix
 
-| State | Node | Key differences | Must change in code |
-| --- | --- | --- | --- |
-| {{state_1}} | `{{state_node_1}}` | {{state_diff_1}} | {{must_change_1}} |
-| {{state_2}} | `{{state_node_2}}` | {{state_diff_2}} | {{must_change_2}} |
-| {{state_3}} | `{{state_node_3}}` | {{state_diff_3}} | {{must_change_3}} |
+| State | Node | Figma visual evidence | Business trigger/source | Must change in code |
+| --- | --- | --- | --- | --- |
+| {{state_1}} | `{{state_node_1}}` | {{state_diff_1}} | {{business_trigger_1}} | {{must_change_1}} |
+| {{state_2}} | `{{state_node_2}}` | {{state_diff_2}} | {{business_trigger_2}} | {{must_change_2}} |
+| {{state_3}} | `{{state_node_3}}` | {{state_diff_3}} | {{business_trigger_3}} | {{must_change_3}} |
+
+## Business Logic Source Map
+
+| Figma node or value | Figma role | Business source | Implementation decision | Unknown or blocker |
+| --- | --- | --- | --- | --- |
+| `{{business_node_1}}` {{figma_value_1}} | {{figma_role_1}} | {{business_source_1}} | {{implementation_decision_1}} | {{business_unknown_1}} |
+| `{{business_node_2}}` {{figma_value_2}} | {{figma_role_2}} | {{business_source_2}} | {{implementation_decision_2}} | {{business_unknown_2}} |
+| `{{business_node_3}}` {{figma_value_3}} | {{figma_role_3}} | {{business_source_3}} | {{implementation_decision_3}} | {{business_unknown_3}} |
 
 ## Asset Inventory
 
@@ -143,12 +158,26 @@ flowchart TD
 - {{instance_note_1}}
 - {{instance_note_2}}
 
+## Verification Summary
+
+| Layer | Status | Evidence |
+| --- | --- | --- |
+| Structure | {{structure_verification_status}} | {{structure_verification_evidence}} |
+| Geometry | {{geometry_verification_status}} | {{geometry_verification_evidence}} |
+| Content and business logic | {{content_business_verification_status}} | {{content_business_verification_evidence}} |
+| Visual diff | {{visual_diff_status}} | {{visual_diff_evidence}} |
+| State coverage | {{state_verification_status}} | {{state_verification_evidence}} |
+
 ## Current Read Outcome
 
 - Boundary coverage: {{boundary_coverage}}
 - Terminal-node coverage: {{terminal_coverage}}
 - Derived spacing coverage: {{spacing_coverage}}
 - Vertical closure: {{vertical_closure_status}}
+- State-matrix coverage: {{state_matrix_coverage}}
+- Business logic source coverage: {{business_logic_source_coverage}}
+- Non-renderable review: {{non_renderable_review}}
+- Critical unknowns: {{critical_unknowns}}
 - CSS strategy: {{layout_strategy_status}}
 - Remaining uncertainty: {{remaining_uncertainty}}
 - Ready for implementation: {{implementation_ready}}
