@@ -27,6 +27,7 @@
 - 对实例节点，优先补内部真实结构，不要只记录 metadata 外框。
 - 如果 metadata 与内部真实壳层不一致，备注里明确写清差异。
 - 关键状态节点单独标注，方便后续写状态矩阵。
+- 文案、数量、列表项、默认选中项等 Figma 可见值先标为样例内容；只有映射到业务来源后，才能作为产品逻辑或真实数据写入实现。
 - `Child count` 取自当前 metadata 读取结果，用来判断是否还能继续递归。
 - `Terminal` 只有在 child count 为 `0` 时才能标记为 `yes`。
 - 对 `instance` 等 shell-capable 节点，`Terminal = yes` 还必须有 `Expansion basis` 和 `Completion proof`，不能只靠 metadata 无子节点。

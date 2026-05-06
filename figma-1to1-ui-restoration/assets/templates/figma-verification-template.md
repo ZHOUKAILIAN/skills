@@ -16,6 +16,7 @@
 | Key geometry tolerance | `{{geometry_tolerance}}` |
 | CSS best practices | `css-best-practices satisfied; positioning exceptions justified` |
 | State coverage | `100%` |
+| Business logic source coverage | `100% of business-affecting content and branches mapped or explicitly blocked` |
 | Visual diff status | `pass` |
 
 ## Structure Check
@@ -45,11 +46,19 @@
 
 ## Content Check
 
-| Item | Expected | Actual | Result |
-| --- | --- | --- | --- |
-| Title text | {{expected_title}} | {{actual_title}} | {{title_result}} |
-| Typography | {{expected_typography}} | {{actual_typography}} | {{typography_result}} |
-| Asset wiring | {{expected_assets}} | {{actual_assets}} | {{asset_result}} |
+| Item | Figma expectation | Business source | Actual | Result |
+| --- | --- | --- | --- | --- |
+| Title text | {{expected_title}} | {{title_business_source}} | {{actual_title}} | {{title_result}} |
+| Typography | {{expected_typography}} | visual source: Figma | {{actual_typography}} | {{typography_result}} |
+| Asset wiring | {{expected_assets}} | visual source: Figma or project asset map | {{actual_assets}} | {{asset_result}} |
+
+## Business Logic Source Check
+
+| Item | Figma sample or visual evidence | Required business source | Actual implementation source | Result |
+| --- | --- | --- | --- | --- |
+| Dynamic text / fields | {{figma_dynamic_text}} | {{expected_dynamic_source}} | {{actual_dynamic_source}} | {{dynamic_source_result}} |
+| Lists / counts | {{figma_list_count_sample}} | {{expected_list_count_source}} | {{actual_list_count_source}} | {{list_count_result}} |
+| Conditional branches | {{figma_branch_sample}} | {{expected_branch_source}} | {{actual_branch_source}} | {{branch_source_result}} |
 
 ## State Coverage Check
 
@@ -76,4 +85,5 @@
 
 - Meets `99% restored` threshold: {{final_threshold_result}}
 - Blocking failures: {{blocking_failures}}
+- Business logic source coverage: {{business_logic_source_coverage}}
 - Remaining risk: {{remaining_risk}}
