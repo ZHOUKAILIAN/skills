@@ -1,0 +1,4 @@
+interface:
+  display_name: "Five Layer Classifier"
+  short_description: "Classify project files by five-layer governance"
+  default_prompt: "Use $five-layer-classifier to classify this project into a file-level five-layer governance table."
