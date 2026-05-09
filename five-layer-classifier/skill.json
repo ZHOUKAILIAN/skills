@@ -1,0 +1,5 @@
+{
+  "name": "five-layer-classifier",
+  "description": "Use when classifying a project, repository, directory, or file set under the AI Coding five-layer governance model, including file-level responsibility, truth-source, product/control repo, local-control, research-archive, public/private, migration, split, or downgrade decisions.",
+  "sub_skills": []
+}

@@ -86,6 +86,10 @@
   - 只读审查已有 UI 实现相对 Figma 的还原质量
   - 输出按严重程度排序的 deviation checklist，不修改代码
   - 覆盖结构、几何、样式、内容和状态五个维度
+- `five-layer-classifier`
+  - 按 AI Coding 五层模型给项目、目录或文件集做职责分类
+  - 输出文件级或文件组级分类表、高风险误判清单、正式入口和迁移/拆分建议
+  - 适合产品仓 / 控制仓拆分前、public / private 审计和 agent 读取顺序梳理
 - `skill-lifecycle`
   - 管理 skill 的完整生命周期：新增、修复、改进和通过 PR 交付
   - 创建或修改 skill 时配合 `skill-standard` 使用
