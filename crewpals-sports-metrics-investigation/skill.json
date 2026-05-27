@@ -1,0 +1,8 @@
+{
+  "name": "crewpals-sports-metrics-investigation",
+  "description": "Use when investigating CrewPals running or sports metric discrepancies such as pace, distance, duration, best records, abnormal data, FIT imports, device sync, or frontend/backend display mismatches.",
+  "sub_skills": [
+    "cst",
+    "ai-doc-driven-dev"
+  ]
+}
