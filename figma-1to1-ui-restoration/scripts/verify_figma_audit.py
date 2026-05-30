@@ -10,11 +10,15 @@ from pathlib import Path
 
 README_REQUIRED_HEADINGS = [
     "## Boundary and Scope",
+    "## Restoration Manifest",
+    "## Source Priority",
     "## Node Classification and Handling",
     "## Derived Spacing",
     "## Vertical Closure Check",
+    "## Horizontal Closure Check",
     "## State Matrix",
     "## Business Logic Source Map",
+    "## Shared Component Impact",
     "## Shell vs Real Visible Bounds",
     "## Unexpanded Nodes",
     "## Verification Summary",
@@ -26,8 +30,11 @@ README_REQUIRED_OUTCOME_KEYS = [
     "Terminal-node coverage:",
     "Derived spacing coverage:",
     "Vertical closure:",
+    "Horizontal closure:",
     "State-matrix coverage:",
     "Business logic source coverage:",
+    "Restoration manifest coverage:",
+    "Shared component impact review:",
     "Non-renderable review:",
     "Critical unknowns:",
     "Ready for implementation:",
@@ -43,6 +50,8 @@ LEDGER_REQUIRED_COLUMNS = [
     "w",
     "h",
     "Depth",
+    "Classification",
+    "Handling decision",
     "Status",
     "Child count",
     "Terminal",
@@ -87,16 +96,22 @@ def validate_readme(readme_text: str) -> list[str]:
 
     terminal_coverage = parse_outcome_value(readme_text, "Terminal-node coverage:")
     vertical_closure = parse_outcome_value(readme_text, "Vertical closure:")
+    horizontal_closure = parse_outcome_value(readme_text, "Horizontal closure:")
     implementation_ready = parse_outcome_value(readme_text, "Ready for implementation:")
     state_coverage = parse_outcome_value(readme_text, "State-matrix coverage:")
     business_logic_source_coverage = parse_outcome_value(readme_text, "Business logic source coverage:")
+    manifest_coverage = parse_outcome_value(readme_text, "Restoration manifest coverage:")
+    shared_component_impact = parse_outcome_value(readme_text, "Shared component impact review:")
     non_renderable_review = parse_outcome_value(readme_text, "Non-renderable review:")
     critical_unknowns = parse_outcome_value(readme_text, "Critical unknowns:")
 
     require(terminal_coverage is not None, "README is missing terminal coverage value", errors)
     require(vertical_closure is not None, "README is missing vertical closure value", errors)
+    require(horizontal_closure is not None, "README is missing horizontal closure value", errors)
     require(state_coverage is not None, "README is missing state-matrix coverage value", errors)
     require(business_logic_source_coverage is not None, "README is missing business logic source coverage value", errors)
+    require(manifest_coverage is not None, "README is missing restoration manifest coverage value", errors)
+    require(shared_component_impact is not None, "README is missing shared component impact review value", errors)
     require(non_renderable_review is not None, "README is missing non-renderable review value", errors)
     require(critical_unknowns is not None, "README is missing critical unknowns value", errors)
     require(implementation_ready is not None, "README is missing implementation readiness value", errors)
@@ -113,6 +128,11 @@ def validate_readme(readme_text: str) -> list[str]:
             errors,
         )
         require(
+            horizontal_closure is not None and horizontal_closure.lower() in {"pass", "passed", "yes", "closed"},
+            "README cannot mark implementation ready unless horizontal closure passed",
+            errors,
+        )
+        require(
             state_coverage is not None and state_coverage.lower() in {"100%", "yes", "complete", "all states covered"},
             "README cannot mark implementation ready unless state-matrix coverage is complete",
             errors,
@@ -121,6 +141,17 @@ def validate_readme(readme_text: str) -> list[str]:
             business_logic_source_coverage is not None
             and business_logic_source_coverage.lower() in {"100%", "yes", "complete", "all mapped"},
             "README cannot mark implementation ready unless business logic source coverage is complete",
+            errors,
+        )
+        require(
+            manifest_coverage is not None and manifest_coverage.lower() in {"100%", "yes", "complete", "single boundary", "all mapped"},
+            "README cannot mark implementation ready unless restoration manifest coverage is complete or single-boundary",
+            errors,
+        )
+        require(
+            shared_component_impact is not None
+            and shared_component_impact.lower() in {"100%", "yes", "complete", "not applicable", "n/a", "all reviewed"},
+            "README cannot mark implementation ready unless shared component impact is reviewed or not applicable",
             errors,
         )
         require(
@@ -154,6 +185,8 @@ def validate_ledger(ledger_text: str) -> list[str]:
             require(f"| {column} " in header or header.endswith(f"| {column} |"), f"Ledger is missing column: {column}", errors)
 
     require("Child count" in ledger_text, "Ledger does not mention child count", errors)
+    require("Classification" in ledger_text, "Ledger does not mention node classification", errors)
+    require("Handling decision" in ledger_text, "Ledger does not mention handling decision", errors)
     require("Terminal" in ledger_text, "Ledger does not mention terminal status", errors)
     require("Expansion basis" in ledger_text, "Ledger does not mention expansion basis", errors)
     require("Completion proof" in ledger_text, "Ledger does not mention completion proof", errors)

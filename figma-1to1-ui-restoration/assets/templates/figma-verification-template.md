@@ -6,6 +6,7 @@
 - Root node: `{{root_node}}`
 - Compared implementation: {{implementation_target}}
 - States in scope: {{states_in_scope}}
+- Manifest item: {{manifest_item}}
 
 ## Acceptance Thresholds
 
@@ -13,11 +14,21 @@
 | --- | --- |
 | Terminal coverage | `100%` |
 | Vertical closure | `pass` |
+| Horizontal closure | `pass` |
 | Key geometry tolerance | `{{geometry_tolerance}}` |
 | CSS best practices | `css-best-practices satisfied; positioning exceptions justified` |
 | State coverage | `100%` |
 | Business logic source coverage | `100% of business-affecting content and branches mapped or explicitly blocked` |
+| Shared-component impact review | `complete when shared components were edited` |
+| Per-boundary review gate | `PASS or explicitly blocked/accepted` |
 | Visual diff status | `pass` |
+
+## Restoration Manifest Gate
+
+| Boundary / state | Figma node | Implementation target | Review gate | Status |
+| --- | --- | --- | --- | --- |
+| {{manifest_item_1}} | `{{manifest_node_1}}` | {{manifest_target_1}} | {{manifest_review_gate_1}} | {{manifest_status_1}} |
+| {{manifest_item_2}} | `{{manifest_node_2}}` | {{manifest_target_2}} | {{manifest_review_gate_2}} | {{manifest_status_2}} |
 
 ## Structure Check
 
@@ -35,6 +46,13 @@
 | Bottom inset | `{{expected_bottom_inset}}` | `{{actual_bottom_inset}}` | `{{bottom_inset_tolerance}}` | {{bottom_inset_result}} |
 | Main gap | `{{expected_main_gap}}` | `{{actual_main_gap}}` | `{{main_gap_tolerance}}` | {{main_gap_result}} |
 | CTA size | `{{expected_cta_size}}` | `{{actual_cta_size}}` | `{{cta_tolerance}}` | {{cta_result}} |
+
+## Closure Check
+
+| Container | Direction | Formula | Expected | Actual | Result |
+| --- | --- | --- | --- | --- | --- |
+| {{closure_container_1}} | vertical | `{{vertical_formula_1}}` | `{{vertical_expected_1}}` | `{{vertical_actual_1}}` | {{vertical_result_1}} |
+| {{closure_container_2}} | horizontal | `{{horizontal_formula_1}}` | `{{horizontal_expected_1}}` | `{{horizontal_actual_1}}` | {{horizontal_result_1}} |
 
 ## CSS Best Practices Check
 
@@ -68,6 +86,15 @@
 | {{state_2}} | {{state_2_implemented}} | {{state_2_verified}} | {{state_2_notes}} |
 | {{state_3}} | {{state_3_implemented}} | {{state_3_verified}} | {{state_3_notes}} |
 
+## Integration and Regression Check
+
+| Item | Expected | Actual | Result |
+| --- | --- | --- | --- |
+| API / PRD behavior | {{expected_api_behavior}} | {{actual_api_behavior}} | {{api_behavior_result}} |
+| Existing analogous flow | {{expected_analogous_flow}} | {{actual_analogous_flow}} | {{analogous_flow_result}} |
+| Shared component consumers | {{expected_consumer_scope}} | {{actual_consumer_scope}} | {{consumer_scope_result}} |
+| Mock usage | {{expected_mock_usage}} | {{actual_mock_usage}} | {{mock_usage_result}} |
+
 ## Visual Diff Check
 
 | State | Figma source | Implementation source | Viewport / crop | Diff result | Notes |
@@ -83,7 +110,9 @@
 
 ## Final Outcome
 
-- Meets `99% restored` threshold: {{final_threshold_result}}
+- Exact restoration gate: {{final_gate_result}}
+- Per-boundary status: {{per_boundary_status}}
 - Blocking failures: {{blocking_failures}}
 - Business logic source coverage: {{business_logic_source_coverage}}
+- Shared-component impact review: {{shared_component_impact_status}}
 - Remaining risk: {{remaining_risk}}

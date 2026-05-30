@@ -38,6 +38,7 @@ The verifier script checks the minimum audit contract for the boundary README an
 
 Before implementation, produce audit artifacts for the restoration boundary:
 
+- A restoration manifest that lists every Figma boundary, state, interaction, business source, implementation target, owner document, and gate status when the task includes more than one screen, variant, or flow step
 - A boundary README that records scope, node classification decisions, derived spacing, vertical closure, shell-node notes, state matrix, verification status, and unresolved unknowns
 - A business logic source map that separates Figma sample content from product-owned content, data fields, and conditional display rules
 - A complete node ledger listing every in-scope visible node with expansion status and completion proof
@@ -88,11 +89,25 @@ When a node is an interaction-proxy:
 
 Make the restoration boundary explicit before any development: which nodes, which states, which variants are in scope. If the boundary is a popup/sheet/modal/drawer, audit overlay and sheet container separately.
 
+### Multi-boundary tasks are gated per boundary
+
+When the user supplies multiple Figma nodes, a PRD with several UI states, or a flow with multiple screens, do not sample representative screens. Build a manifest and complete each boundary in order:
+
+1. Read the owning PRD or current task text and list every required screen, state, and interaction.
+2. Map each requirement item to a Figma node, business source, and implementation target.
+3. Audit, implement, and verify one boundary before moving to the next when the user requires strict per-screen acceptance.
+4. Mark skipped, merged, or out-of-scope boundaries explicitly with the reason and user/source that owns that decision.
+
+Wrong: restore the main page and infer that loading, empty, error, long-list, or export states use the same layout.
+Right: list each visible state and flow step, then prove which Figma node and business rule owns it.
+
 ### State matrix before implementation
 
 List every in-scope state before writing code. This includes selection states, visibility states, empty/populated states, loading states, permission states, popup open/closed states, and any user-specific branches such as "my row" vs ordinary rows.
 
 Do not implement from a default screenshot alone. If a state exists in the boundary and affects layout, content, or styling, it must appear in the state matrix.
+
+For mini-program and product flow work, check the common state set before declaring the matrix complete: logged-out, first logged-in screen, loading, empty, network error, permission/no-access, disabled, success, pagination, pull-to-refresh, bottom loading, long-list scroll, keyboard/safe-area, selected/unselected, current-user/self row, abnormal/warning, and API timeout where applicable. Mark non-applicable states with a reason rather than leaving them blank.
 
 The state matrix must distinguish:
 
@@ -103,15 +118,19 @@ If Figma shows only one sample of a business-driven state, do not infer the full
 
 ### Business logic owns uncertain display decisions
 
-Before implementing text content, list items, counts, field labels, eligibility rules, visibility conditions, sorting, filtering, or selected/default branches, identify the business source that owns each decision.
+Before implementing text content, list items, counts, field labels, eligibility rules, visibility conditions, sorting, filtering, share/copy payloads, export behavior, validation, or selected/default branches, identify the business source that owns each decision.
 
 Acceptable business sources include:
 
 - Existing source code, component props, stores, hooks, API clients, route loaders, or server handlers
 - Product requirements, technical design docs, API contracts, schemas, fixtures, or seeded data
+- Existing analogous implementation that the user named as the interaction/data-flow reference
+- Live or test backend responses when the user says the service is ready and asks for integration
 - Explicit user instructions in the current task
 
 If a Figma node is only sample content, use it to restore style and layout, not to create product behavior. If no business source exists for an implementation-affecting decision, record the unknown and stop to ask before hardcoding behavior.
+
+Use this source priority unless the user gives a different one: Figma owns visual values and visual state examples; PRD/task text owns product behavior and acceptance; API/schema/runtime data owns fields, errors, and data shape; existing analogous code owns reusable interaction and integration patterns.
 
 ### Complete node ledger before implementation
 
@@ -149,6 +168,10 @@ Use `css-best-practices` to translate audited Figma geometry into maintainable C
 
 For each major container, prove: `top inset + internal gaps + content heights + bottom inset = container height`. If the numbers do not close, keep reading — the audit is not complete. Do not start implementation until closure passes.
 
+### Horizontal closure is required
+
+For row, toolbar, tab, card, grid, modal header, and list-item containers, also prove: `left inset + internal gaps + content widths + right inset = container width`. Irregular gaps are allowed only when each gap is separately derived and explained.
+
 ### Refine before rewriting
 
 Search the existing codebase first. If a rough version exists, refine that file directly and trace its data flow before replacing content or display logic. Only create a new implementation if none exists or the user explicitly requests it.
@@ -160,6 +183,13 @@ Check the project's measurement system (px, rpx, rem, etc.) and stay consistent 
 ### Reuse existing code only with parity proof
 
 Reusing an existing component is allowed only when it can be shown to preserve the audited structure, geometry, assets, and states. If reuse forces the implementation away from the audited result, do not reuse it.
+
+### Shared component changes require blast-radius accounting
+
+If a restoration touches a shared component, list all known consumers before editing. Scope the new visual contract through props, variants, slots, or local wrappers unless the user explicitly wants all consumers changed. Verify affected consumers or record why a consumer is out of scope.
+
+Wrong: change a shared ranking row or popup style globally because one Figma node needs it.
+Right: add a named variant or scoped wrapper, then verify the original consumers keep their previous behavior and layout.
 
 ### Do not overwrite business logic with Figma samples
 
@@ -173,13 +203,19 @@ When the user explicitly wants 1:1 restoration, do not silently snap spacing, si
 
 If any in-scope node, state, or geometry relationship remains unresolved, record it as an explicit unknown or blocker. Do not close the task with softened language such as "mostly matched" or "close enough".
 
+### No mock substitution when integration is in scope
+
+When the user says backend/API support is ready or names an existing implementation to reuse, do not replace integration with mock-only UI. Use fixtures only to reproduce a state locally, and record which live API, schema, or existing implementation proves the real data flow.
+
 ## Key Information To Capture
 
 Every audit must cover:
 
 - Root geometry and position
+- Multi-boundary restoration manifest when more than one node, state, or flow step is in scope
 - Full child structure map with depth
 - Derived vertical and horizontal spacing (with formulas)
+- Vertical and horizontal closure checks for major containers
 - CSS strategy required by `css-best-practices`
 - Typography: size, line height, weight, tracking, color
 - Colors, borders, radius, shadows
@@ -188,11 +224,13 @@ Every audit must cover:
 - All visible text, images, icons, SVG assets
 - Business logic source map for every dynamic text, list, count, selected/default branch, permission branch, and conditional display rule
 - Figma sample-content decisions: whether each visible value is copied literally, bound to business data, replaced by existing copy, or left as an unresolved unknown
+- Source priority decisions when Figma, PRD, API, and existing code appear to conflict
 - Design tokens or variables
 - Shell vs real visible bounds discrepancies
 - Node classification result for each special node: renderable, platform-native, interaction-proxy, or annotation/demo-only
 - Handling decision for non-renderable nodes: delegated to platform, converted into behavior/state, or excluded with rationale
 - Reuse or deviation decisions, with proof when existing code or tokens are kept
+- Shared-component impact map and verification plan when a shared component is edited
 
 ## Verification
 
@@ -208,6 +246,8 @@ Geometry verification must include a `css-best-practices` check. Any `absolute` 
 
 Content verification must include a business-source check. Static Figma copy may be compared literally only when it is confirmed as product-owned copy. Dynamic content must be verified against the code path, API/schema, fixture, or user-provided rule that owns it.
 
+For strict multi-boundary tasks, run the acceptance or review gate for each boundary before continuing to the next one. If the workflow uses `figma-restoration-review`, any critical or major deviation blocks progression until fixed or explicitly accepted by the user.
+
 Use measurable thresholds. Do not use "looks close" as a verification result.
 
 Record the outcome for each layer. If a layer could not be run, say why and keep the task open.
@@ -220,7 +260,7 @@ The task is complete only when ALL of the following are verified:
 2. Every in-scope visible node has been read to terminal depth (no child nodes remaining).
 3. Every shell-capable node has expansion basis and completion proof recorded.
 4. Spacing is derived with named reference nodes and formulas.
-5. Vertical closure passes for each major container.
+5. Vertical and horizontal closure pass for each major container.
 6. State matrix covers all in-scope states.
 7. All five verification layers (structure, geometry, content, visual diff, state) have been run.
 8. CSS strategy satisfies `css-best-practices`, and every `absolute` or `fixed` positioned element has a justified out-of-flow reason.
@@ -228,6 +268,8 @@ The task is complete only when ALL of the following are verified:
 10. Any reused component or token has parity proof, or the deviation is explicitly recorded.
 11. Every non-renderable node has an explicit handling decision: platform delegation, behavior translation, or justified exclusion.
 12. Every business-affecting text, data field, list item, count, selected/default branch, permission branch, and conditional display rule has a recorded business source or an explicit unresolved unknown.
+13. Every in-scope boundary in a multi-boundary task has an explicit PASS/FAIL/blocked status.
+14. Shared-component blast radius is recorded when shared components were changed.
 
 If any item is missing, say so explicitly — do not soften it into "mostly restored".
 

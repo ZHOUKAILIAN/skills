@@ -13,6 +13,24 @@
 - Implementation target(s): {{implementation_targets}}
 - Figma sample-content rule: {{figma_sample_rule}}
 
+## Restoration Manifest
+
+Use this section when the task includes more than one node, screen, state, or flow step. Every in-scope item must have a row before implementation starts.
+
+| Boundary / state | Figma node | Business source | Implementation target | Required interaction/state | Gate status |
+| --- | --- | --- | --- | --- | --- |
+| {{manifest_item_1}} | `{{manifest_node_1}}` | {{manifest_business_source_1}} | {{manifest_target_1}} | {{manifest_state_1}} | {{manifest_gate_1}} |
+| {{manifest_item_2}} | `{{manifest_node_2}}` | {{manifest_business_source_2}} | {{manifest_target_2}} | {{manifest_state_2}} | {{manifest_gate_2}} |
+
+## Source Priority
+
+| Source | Owns | Notes / conflict decision |
+| --- | --- | --- |
+| Figma | Visual geometry, typography, colors, assets, visual state examples | {{figma_source_notes}} |
+| PRD / task text | Product behavior, acceptance, validation, copy ownership | {{prd_source_notes}} |
+| API / schema / runtime data | Field names, error codes, data shape, live integration | {{api_source_notes}} |
+| Existing analogous code | Reusable interaction pattern, data flow, error handling | {{code_source_notes}} |
+
 ## Read Basis
 
 - `get_metadata({{root_node}})`
@@ -95,6 +113,18 @@ flowchart TD
 | Closure formula | `{{closure_formula}}` |
 | Closure result | `{{closure_result}}` |
 
+## Horizontal Closure Check
+
+| Item | Value |
+| --- | --- |
+| Container width | `{{horizontal_closure_container_width}}` |
+| Left inset | `{{horizontal_closure_left_inset}}` |
+| Content widths total | `{{horizontal_closure_content_total}}` |
+| Internal horizontal gaps total | `{{horizontal_closure_gap_total}}` |
+| Right inset | `{{horizontal_closure_right_inset}}` |
+| Closure formula | `{{horizontal_closure_formula}}` |
+| Closure result | `{{horizontal_closure_result}}` |
+
 ## CSS Strategy
 
 | Container or relationship | Geometry evidence | CSS primitive | `css-best-practices` decision |
@@ -124,6 +154,22 @@ flowchart TD
 | {{state_2}} | `{{state_node_2}}` | {{state_diff_2}} | {{business_trigger_2}} | {{must_change_2}} |
 | {{state_3}} | `{{state_node_3}}` | {{state_diff_3}} | {{business_trigger_3}} | {{must_change_3}} |
 
+### Common State Checklist
+
+| State | Applicable | Node / source | Reason if not applicable |
+| --- | --- | --- | --- |
+| Logged out | {{logged_out_applicable}} | {{logged_out_source}} | {{logged_out_reason}} |
+| First logged-in screen | {{first_screen_applicable}} | {{first_screen_source}} | {{first_screen_reason}} |
+| Loading | {{loading_applicable}} | {{loading_source}} | {{loading_reason}} |
+| Empty | {{empty_applicable}} | {{empty_source}} | {{empty_reason}} |
+| Network error / timeout | {{error_applicable}} | {{error_source}} | {{error_reason}} |
+| Permission / no access | {{permission_applicable}} | {{permission_source}} | {{permission_reason}} |
+| Pagination / bottom loading | {{pagination_applicable}} | {{pagination_source}} | {{pagination_reason}} |
+| Pull-to-refresh | {{refresh_applicable}} | {{refresh_source}} | {{refresh_reason}} |
+| Long-list scroll | {{scroll_applicable}} | {{scroll_source}} | {{scroll_reason}} |
+| Selected / disabled | {{selection_applicable}} | {{selection_source}} | {{selection_reason}} |
+| Current-user / abnormal / warning | {{warning_applicable}} | {{warning_source}} | {{warning_reason}} |
+
 ## Business Logic Source Map
 
 | Figma node or value | Figma role | Business source | Implementation decision | Unknown or blocker |
@@ -138,6 +184,13 @@ flowchart TD
 | --- | --- | --- | --- |
 | {{asset_1}} | `{{asset_node_1}}` | {{asset_type_1}} | {{asset_note_1}} |
 | {{asset_2}} | `{{asset_node_2}}` | {{asset_type_2}} | {{asset_note_2}} |
+
+## Shared Component Impact
+
+| Shared component | Consumers checked | Variant / scope decision | Regression verification |
+| --- | --- | --- | --- |
+| {{shared_component_1}} | {{shared_consumers_1}} | {{shared_scope_1}} | {{shared_verification_1}} |
+| {{shared_component_2}} | {{shared_consumers_2}} | {{shared_scope_2}} | {{shared_verification_2}} |
 
 ## Detailed Read
 
@@ -174,8 +227,11 @@ flowchart TD
 - Terminal-node coverage: {{terminal_coverage}}
 - Derived spacing coverage: {{spacing_coverage}}
 - Vertical closure: {{vertical_closure_status}}
+- Horizontal closure: {{horizontal_closure_status}}
 - State-matrix coverage: {{state_matrix_coverage}}
 - Business logic source coverage: {{business_logic_source_coverage}}
+- Restoration manifest coverage: {{manifest_coverage}}
+- Shared component impact review: {{shared_component_impact_status}}
 - Non-renderable review: {{non_renderable_review}}
 - Critical unknowns: {{critical_unknowns}}
 - CSS strategy: {{layout_strategy_status}}
