@@ -24,6 +24,7 @@
 - `shell`: metadata 或实例壳层，内部还有真实可见结构
 - `skipped`: 明确不在当前边界内
 - `unknown`: 还需进一步读取
+- `blocked`: 应读取但当前访问、工具或事实来源不足，必须进入 Blocking Questions
 
 ## Classification Legend
 
@@ -43,3 +44,4 @@
 - 对 `instance` 等 shell-capable 节点，`Terminal = yes` 还必须有 `Expansion basis` 和 `Completion proof`，不能只靠 metadata 无子节点。
 - `Expanded` 不是是否存在子节点，而是是否已经继续读到实现所需的真实可见层级。
 - 如果某个关键节点没有展开，必须在 `Reason if not expanded` 里说明为什么当前仍然可以继续。
+- 如果某个范围内可见节点是 `unknown`、`unexpanded` 或 `blocked`，审计不能交给 `css-best-practices`，也不能标记为 ready。

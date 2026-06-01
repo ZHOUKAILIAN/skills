@@ -12,10 +12,12 @@ README_REQUIRED_HEADINGS = [
     "## Boundary and Scope",
     "## Restoration Manifest",
     "## Source Priority",
+    "## Blocking Questions",
     "## Node Classification and Handling",
     "## Derived Spacing",
     "## Vertical Closure Check",
     "## Horizontal Closure Check",
+    "## CSS Handoff Values",
     "## State Matrix",
     "## Business Logic Source Map",
     "## Shared Component Impact",
@@ -37,8 +39,16 @@ README_REQUIRED_OUTCOME_KEYS = [
     "Shared component impact review:",
     "Non-renderable review:",
     "Critical unknowns:",
+    "CSS handoff values:",
+    "Remaining uncertainty:",
+    "Blocking questions:",
     "Ready for implementation:",
 ]
+
+READY_VALUES = {"yes", "true", "ready"}
+DECLARED_CLEAR_VALUES = {"none", "no", "0", "zero", "resolved", "all resolved", "cleared", "empty"}
+CLEAR_OR_NON_BLOCKING_VALUES = DECLARED_CLEAR_VALUES | {"non-blocking", "non-blocking only", "documented non-blocking", "n/a", "na", "not applicable"}
+UNRESOLVED_TOKENS = ("{{", "unknown", "unexpanded", "blocked", "tbd", "todo", "fixme")
 
 LEDGER_REQUIRED_COLUMNS = [
     "Node ID",
@@ -85,6 +95,15 @@ def parse_outcome_value(readme_text: str, label: str) -> str | None:
     return match.group(1).strip() if match else None
 
 
+def normalize_value(value: str | None) -> str | None:
+    return value.lower().strip() if value is not None else None
+
+
+def has_unresolved_token(text: str) -> bool:
+    lowered = text.lower()
+    return any(token in lowered for token in UNRESOLVED_TOKENS)
+
+
 def validate_readme(readme_text: str) -> list[str]:
     errors: list[str] = []
 
@@ -98,12 +117,15 @@ def validate_readme(readme_text: str) -> list[str]:
     vertical_closure = parse_outcome_value(readme_text, "Vertical closure:")
     horizontal_closure = parse_outcome_value(readme_text, "Horizontal closure:")
     implementation_ready = parse_outcome_value(readme_text, "Ready for implementation:")
+    blocking_questions = parse_outcome_value(readme_text, "Blocking questions:")
     state_coverage = parse_outcome_value(readme_text, "State-matrix coverage:")
     business_logic_source_coverage = parse_outcome_value(readme_text, "Business logic source coverage:")
     manifest_coverage = parse_outcome_value(readme_text, "Restoration manifest coverage:")
     shared_component_impact = parse_outcome_value(readme_text, "Shared component impact review:")
     non_renderable_review = parse_outcome_value(readme_text, "Non-renderable review:")
     critical_unknowns = parse_outcome_value(readme_text, "Critical unknowns:")
+    css_handoff_values = parse_outcome_value(readme_text, "CSS handoff values:")
+    remaining_uncertainty = parse_outcome_value(readme_text, "Remaining uncertainty:")
 
     require(terminal_coverage is not None, "README is missing terminal coverage value", errors)
     require(vertical_closure is not None, "README is missing vertical closure value", errors)
@@ -114,9 +136,12 @@ def validate_readme(readme_text: str) -> list[str]:
     require(shared_component_impact is not None, "README is missing shared component impact review value", errors)
     require(non_renderable_review is not None, "README is missing non-renderable review value", errors)
     require(critical_unknowns is not None, "README is missing critical unknowns value", errors)
+    require(css_handoff_values is not None, "README is missing CSS handoff values value", errors)
+    require(remaining_uncertainty is not None, "README is missing remaining uncertainty value", errors)
+    require(blocking_questions is not None, "README is missing blocking questions value", errors)
     require(implementation_ready is not None, "README is missing implementation readiness value", errors)
 
-    if implementation_ready and implementation_ready.lower() in {"yes", "true", "ready"}:
+    if implementation_ready and normalize_value(implementation_ready) in READY_VALUES:
         require(
             terminal_coverage is not None and terminal_coverage.lower() in {"100%", "yes", "complete", "all terminal"},
             "README cannot mark implementation ready unless terminal coverage is complete",
@@ -164,6 +189,42 @@ def validate_readme(readme_text: str) -> list[str]:
             "README cannot mark implementation ready unless critical unknowns are cleared",
             errors,
         )
+        require(
+            css_handoff_values is not None and css_handoff_values.lower() in {"100%", "yes", "complete", "all captured", "ready"},
+            "README cannot mark implementation ready unless CSS handoff values are captured",
+            errors,
+        )
+        require(
+            remaining_uncertainty is not None and normalize_value(remaining_uncertainty) in CLEAR_OR_NON_BLOCKING_VALUES,
+            "README cannot mark implementation ready unless remaining uncertainty is cleared or explicitly non-blocking",
+            errors,
+        )
+        require(
+            blocking_questions is not None and normalize_value(blocking_questions) in DECLARED_CLEAR_VALUES,
+            "README cannot mark implementation ready unless blocking questions are cleared",
+            errors,
+        )
+
+        # Ready artifacts should not carry unresolved placeholders or blocker tokens.
+        for label, value in {
+            "terminal coverage": terminal_coverage,
+            "vertical closure": vertical_closure,
+            "horizontal closure": horizontal_closure,
+            "state coverage": state_coverage,
+            "business logic source coverage": business_logic_source_coverage,
+            "manifest coverage": manifest_coverage,
+            "shared component impact": shared_component_impact,
+            "non-renderable review": non_renderable_review,
+            "critical unknowns": critical_unknowns,
+            "CSS handoff values": css_handoff_values,
+            "remaining uncertainty": remaining_uncertainty,
+            "blocking questions": blocking_questions,
+        }.items():
+            require(
+                value is not None and not has_unresolved_token(value),
+                f"README cannot mark implementation ready unless {label} is resolved and free of placeholder tokens",
+                errors,
+            )
 
     return errors
 
@@ -175,7 +236,18 @@ def extract_ledger_header(ledger_text: str) -> str | None:
     return None
 
 
-def validate_ledger(ledger_text: str) -> list[str]:
+def extract_ledger_rows(ledger_text: str) -> list[list[str]]:
+    rows: list[list[str]] = []
+    for line in ledger_text.splitlines():
+        stripped = line.strip()
+        if not stripped.startswith("| `"):
+            continue
+        cells = [cell.strip() for cell in stripped.strip("|").split("|")]
+        rows.append(cells)
+    return rows
+
+
+def validate_ledger(ledger_text: str, implementation_ready: bool) -> list[str]:
     errors: list[str] = []
     header = extract_ledger_header(ledger_text)
     require(header is not None, "Ledger is missing the node table header", errors)
@@ -190,10 +262,24 @@ def validate_ledger(ledger_text: str) -> list[str]:
     require("Terminal" in ledger_text, "Ledger does not mention terminal status", errors)
     require("Expansion basis" in ledger_text, "Ledger does not mention expansion basis", errors)
     require("Completion proof" in ledger_text, "Ledger does not mention completion proof", errors)
+    require("blocked" in ledger_text.lower(), "Ledger does not mention blocked status", errors)
 
-    row_pattern = re.compile(r"^\| `.+` \|", re.MULTILINE)
-    rows = row_pattern.findall(ledger_text)
+    rows = extract_ledger_rows(ledger_text)
     require(bool(rows), "Ledger must contain at least one node row", errors)
+
+    if implementation_ready:
+        for row_number, cells in enumerate(rows, start=1):
+            row_text = " | ".join(cells)
+            require(
+                "{{" not in row_text,
+                f"Ledger row {row_number} cannot contain template placeholders when implementation is ready",
+                errors,
+            )
+            require(
+                not re.search(r"\b(unknown|unexpanded|blocked|tbd|todo|fixme)\b", row_text, re.IGNORECASE),
+                f"Ledger row {row_number} cannot contain unresolved or blocked markers when implementation is ready",
+                errors,
+            )
 
     return errors
 
@@ -206,9 +292,10 @@ def main() -> int:
 
     readme_text = read_file(args.readme)
     ledger_text = read_file(args.ledger)
+    implementation_ready = normalize_value(parse_outcome_value(readme_text, "Ready for implementation:")) in READY_VALUES
 
     errors = validate_readme(readme_text)
-    errors.extend(validate_ledger(ledger_text))
+    errors.extend(validate_ledger(ledger_text, implementation_ready=implementation_ready))
 
     if errors:
         for error in errors:

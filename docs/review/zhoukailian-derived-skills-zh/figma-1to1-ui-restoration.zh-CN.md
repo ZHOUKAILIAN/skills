@@ -8,229 +8,66 @@
 
 - `name`: `figma-1to1-ui-restoration`
 - `description`: 当用户提供 Figma URL、fileKey 或 node-id，并希望对组件、弹窗、页面或局部模块做精确 1:1 UI 实现或还原时使用。
-- `sub_skills`: `css-best-practices`, `figma-restoration-review`
+- `sub_skills`: `figma-design-audit`, `css-best-practices`, `figma-restoration-review`
 
-## Figma 1:1 UI 还原
+## 核心规则
 
-给定一个 Figma 节点边界后，要把边界内每个可见节点读到最底层，根据几何信息推导所有布局值，然后实现或修正代码，直到能用证据证明实现和审计结构一致。
+这个 skill 是精确 Figma-to-code 还原的协调入口。它不拥有详细的 Figma 审计规则、CSS 实现规则或最终只读复核规则。它负责把任务路由给正确 owner，并且在上一阶段没有产出可验证证据时阻止进入下一阶段。
 
-### 目标
+## 活动模式
 
-读取还原边界内的所有可见节点，直到没有子节点为止；用命名的参考节点从几何信息中推导间距；最后通过多层验证让实现收敛。标准是有数据支撑的保真，而不是“看起来差不多”。
+只有当用户要做实现或还原时使用本 skill，而不是只读 review。
 
-### 统治规则
+如果用户只是要求编码前检查 Figma，使用 `figma-design-audit`。如果用户只是要求对比既有实现和 Figma，使用 `figma-restoration-review`。
 
-当用户要求精确还原时，本 skill 管理保真决策。此模式下，Figma 是布局、几何、字体、颜色、素材、视觉层级和视觉状态样例的主要事实来源。只有在能证明不会破坏审计出的几何、结构和状态覆盖时，才可以复用设计系统组件、项目 token 或既有代码。
+## 工作流
 
-Figma 不自动成为业务内容、数据字段、权限、条件分支、排序、过滤、数量、文案归属或记录渲染规则的事实来源。这些必须来自用户请求、产品需求、既有实现、API 合约、schema、运行时数据或其他明确业务来源。
+1. 先用 `figma-design-audit` 执行 Figma 事实收集阶段。
+2. 在 Figma 审计标记 `Ready for implementation: yes` 且没有未解决 Blocking Questions 之前，不写应用代码。
+3. 实现阶段使用 `css-best-practices`，把已审计 Figma 值当作测量证据，把项目代码库当作实现上下文。
+4. 除非 PRD、API/schema、既有事实来源或用户明确回答改变业务规则，否则保留产品已有业务逻辑。
+5. 实现存在后，当用户要求 review、任务需要保真签收或视觉风险较高时，用 `figma-restoration-review` 做只读验收复核。
 
-错误：因为设计稿里看到了示例昵称、数量、tab 或选中行，就把这些值硬编码为业务逻辑。
+## Handoff Gate
 
-正确：用 Figma 还原昵称、数量、tab、选中行的视觉样式，再把真实值和展示条件映射回业务逻辑。
+### 审计到实现
 
-### 使用场景
+从 `figma-design-audit` 交给 `css-best-practices` 之前，必须满足：
 
-- 用户提供 Figma URL、`fileKey` 或 `node-id`。
-- 用户希望已有 UI 精确对齐 Figma。
-- 用户希望从 Figma 新实现组件、页面、弹窗或模块。
-- 用户要求编码前先读完所有子节点、状态、素材和规格。
+- 每个范围内可见节点都有 terminal-depth 覆盖或有理由排除。
+- 每个可见节点已分类为 `renderable-ui`、`platform-native`、`interaction-proxy` 或 `annotation-demo-only`。
+- 几何值由 Figma 节点数据推导，并包含命名参考节点和闭环检查。
+- 影响业务的 Figma 样例已映射到来源或用户答案。
+- Blocking Questions 为空或已明确回答。
+- 有持久审计产物时，audit verifier 已通过。
 
-### 程序化资产
+如果审计是 `not ready`，继续停留在审计阶段，或询问 `figma-design-audit` 产出的成组 blocking questions。
 
-本 skill 包含 `assets/templates/` 下的审计模板，以及 `scripts/` 下的 verifier 脚本。任务需要审计产物或验证时，应读取这些文件并使用它们。
+### 实现到复核
 
-verifier 脚本用于检查边界 README 和节点 ledger 的最低审计契约。在声明任务可以进入实现或验收前，应用它确认审计结构完整。
+只有相关源码已经修改且可运行或可检查时，才从实现阶段交给 `figma-restoration-review`。review skill 是只读的，只报告 deviation，不改代码。
 
-### 实现前必须产出的审计内容
+## Owner 边界
 
-实现前，要为还原边界产出这些审计文件：
+| 范围 | Owner skill |
+| --- | --- |
+| Figma 节点遍历、可见节点分类、测量证据、状态样例、阻塞问题 | `figma-design-audit` |
+| CSS/layout/styling 实现策略、单位转换、flow vs absolute、可维护性 | `css-best-practices` |
+| 实现后的保真复核和 deviation checklist | `figma-restoration-review` |
+| 本 skill | 阶段顺序、handoff gate、最终证明包 |
 
-- 当任务包含多个屏幕、变体或流程步骤时，建立 restoration manifest，列出每个 Figma 边界、状态、交互、业务来源、实现目标、owner 文档和 gate 状态。
-- 边界 README，记录范围、节点分类、推导间距、垂直闭环、shell 节点说明、状态矩阵、验证状态和未解决未知项。
-- 业务逻辑来源映射，区分 Figma 样例内容和产品拥有的内容、数据字段、条件展示规则。
-- 完整节点 ledger，列出每个范围内可见节点的展开状态和完成证明。
+## Red Flags
 
-缺少这些产物时，审计不算完成。
-
-## 约束
-
-### Figma MCP 必须可用
-
-如果 Figma MCP 不可用或未认证，立即停止。告诉用户需要配置。不要靠截图、记忆或猜测编造规格。
-
-### 实现前先分类节点
-
-每个范围内可见节点都必须先分类，再决定如何实现：
-
-- **Renderable UI**：由应用代码渲染。
-- **Platform-native**：由宿主平台、运行时容器或操作系统提供。
-- **Interaction-proxy**：静态设计层表达行为、过渡、手势、选择、展开或交互状态。
-- **Annotation / demo-only**：注释、箭头、预览 chrome、手机壳或展示专用图层。
-
-不要把所有可见节点都当作静态像素复刻。审计必须回答：它在设计里是否可见，以及它应由产品代码渲染、交给平台、转成行为，还是作为注释排除。
-
-### 平台原生节点不能盲目复制
-
-微信胶囊按钮、系统状态栏、home indicator、浏览器 chrome、系统键盘、容器导航 chrome、安全区等可能作为视觉上下文出现在 Figma 中。它们不自动属于产品 UI。
-
-平台原生节点要记录为 `platform-native`，说明原因，并映射到平台配置、运行时行为、安全区处理或明确的 out-of-scope。
-
-### 交互代理节点要变成行为
-
-按下态、选中样例、打开的 sheet、滑动提示、picker wheel、hotspot shell、瞬态 overlay 或展开示例，可能只是 Figma 对交互的静态表达。它们通常应转成状态、转场或触发行为，而不是永远显示在页面上。
-
-### 先定边界
-
-任何开发前都要明确还原边界：哪些节点、哪些状态、哪些变体在范围内。如果是 popup/sheet/modal/drawer，要分别审计遮罩和容器。
-
-### 多边界任务按边界设 gate
-
-当用户提供多个 Figma 节点、PRD 中有多个 UI 状态，或一个流程包含多个屏幕时，不要只抽样代表性页面。要建立 manifest，并按顺序完成每个边界：
-
-1. 读取 owner PRD 或当前任务文本，列出所有要求的屏幕、状态和交互。
-2. 把每个需求项映射到 Figma 节点、业务来源和实现目标。
-3. 当用户要求严格逐屏验收时，一个边界完成审计、实现、验证后再进入下一个。
-4. 对跳过、合并或 out-of-scope 的边界，明确记录原因和决策来源。
-
-### 实现前先建状态矩阵
-
-写代码前列出所有范围内状态，包括选中、可见性、空/有数据、加载、权限、弹窗开关，以及“我的行”和普通行等用户分支。
-
-不要只根据默认截图实现。如果状态存在且影响布局、内容或样式，它必须进入状态矩阵。
-
-小程序和产品流要检查常见状态：未登录、首次登录、加载、空态、网络错误、无权限、禁用、成功、分页、下拉刷新、底部加载、长列表滚动、键盘/安全区、选中/未选中、当前用户/自己、异常/警告、API 超时。不可用状态要说明原因。
-
-状态矩阵要区分：
-
-- **Figma 视觉状态**：设计中展示的 selected、disabled、empty、highlighted、expanded 等视觉样例。
-- **业务驱动状态**：决定数据或分支渲染的权限、所有权、容量、用户角色、API 状态、记录归属等。
-
-如果 Figma 只展示了一个业务状态样例，不能从样例推断完整产品规则。需要读实现、需求、API/schema，或在找不到业务来源时询问用户。
-
-### 业务逻辑拥有不确定展示决策
-
-实现文本、列表、数量、字段标签、资格规则、可见性条件、排序、过滤、分享/复制 payload、导出、校验、选中/默认分支前，要找出每个决策的业务来源。
-
-可接受的业务来源包括：既有源码、组件 props、store、hooks、API client、路由 loader、服务端 handler、产品需求、技术设计、API 合约、schema、fixtures、seeded data、用户指定的类似实现、用户说后端已准备好时的测试/真实响应，以及当前任务中的明确用户指令。
-
-如果某个 Figma 节点只是样例内容，就只用它还原样式和布局，不用它创建产品行为。如果某个影响实现的决策找不到业务来源，记录 unknown 并停下来问，不要硬编码。
-
-默认来源优先级：Figma 拥有视觉值和视觉状态样例；PRD/任务文本拥有产品行为和验收；API/schema/运行时数据拥有字段、错误和数据形状；既有类似代码拥有可复用交互和集成模式。
-
-### 实现前完成节点 ledger
-
-测试或生产代码前，节点 ledger 必须完整。每个范围内可见节点都要递归展开到没有子节点，不要停在 instance shell、外层 frame 或看似完整的图层。
-
-ledger 完成标准：
-
-- 每个范围内可见节点都有 terminal/shell/excluded 状态。
-- 没有节点停留在 unknown 或 unexpanded。
-- shell-capable 节点不能在没有展开证明时标 terminal。
-
-### shell 节点需要展开证明
-
-`instance`、类似 component 的可复用容器、icon wrapper、slot wrapper、命名设计系统 shell，不能仅因为 metadata 显示无 children 就标为 terminal。节点影响实现时，需要设计上下文展开。只有 metadata 遍历耗尽且 design-context 展开也没有额外未审结构时，才能标 terminal。
-
-### 截图只辅助审计
-
-截图可以用于视觉对比和状态匹配，但不能替代节点遍历、shell 展开或间距推导。
-
-### 间距必须由几何推导
-
-Figma 不暴露 CSS 语义。必须从父子节点或兄弟节点的 `x`、`y`、`width`、`height` 推导 inset 和 gap。每个实现使用的间距都要写出容器、参考节点和公式。
-
-### CSS 写法要走 css-best-practices
-
-用 `css-best-practices` 把 Figma 几何证据翻译成可维护 CSS。Figma 坐标是测量证据，不等于允许每个图层都用绝对定位复刻。任何定位例外都要记录原因、锚点和影响状态。
-
-### 垂直和水平闭环都必须通过
-
-每个主要容器要证明：
-
-- 垂直：`top inset + internal gaps + content heights + bottom inset = container height`
-- 水平：`left inset + internal gaps + content widths + right inset = container width`
-
-如果数字闭不上，说明审计未完成。不要开始实现。
-
-### 优先精修，不优先重写
-
-先搜索既有代码。如果已有粗版本，优先直接精修并追踪数据流。只有没有既有实现，或用户明确要求，才新建实现。
-
-### 遵循项目约定
-
-检查项目使用 px、rpx、rem 还是其他度量系统，并和既有代码保持一致。不要把 Figma 像素值盲目复制到单位体系不同的项目里。
-
-### 复用组件必须有一致性证明
-
-只有能证明既有组件保留审计出的结构、几何、素材和状态时，才可以复用。如果复用会偏离审计结果，就不要复用。
-
-### 改共享组件要核算影响面
-
-如果还原涉及共享组件，编辑前列出已知消费者。优先通过 props、variants、slots 或局部 wrapper 缩小新视觉契约，除非用户明确希望所有消费者一起变。需要验证受影响消费者，或说明为什么某个消费者不在范围内。
-
-### 不要用 Figma 样例覆盖业务逻辑
-
-既有代码已经定义数据映射、权限、状态流转或条件渲染时，除非用户明确要求改变，或产品来源证明现有逻辑错误，否则要保留业务行为。Figma 可以要求重做这些分支的视觉样式，但不能单独授权替换分支逻辑。
-
-### 精确还原模式下 Figma 值优先于项目默认值
-
-用户明确要 1:1 时，不要偷偷把间距、尺寸、圆角、字体或素材改回设计系统默认值。任何偏离 Figma 审计的地方都必须明确、说明理由并记录为 deviation。
-
-### unknown 必须可见
-
-范围内任何节点、状态或几何关系未解决时，要明确记录为 unknown 或 blocker。不能用“基本匹配”“差不多”收尾。
-
-### 集成在范围内时不能用 mock 替代
-
-当用户说后端/API 已准备好，或指定要复用既有实现时，不要把集成替换成纯 mock UI。fixture 只能用于本地复现状态，并且要记录哪个真实 API、schema 或既有实现证明真实数据流。
-
-## 必须捕获的信息
-
-每次审计必须覆盖：根节点几何和位置、多边界 manifest、完整子节点结构、垂直/水平间距公式、闭环检查、CSS 策略、字体、颜色、边框、圆角、阴影、图标和按钮尺寸、状态矩阵、所有可见文本/图片/图标/SVG、业务逻辑来源映射、Figma 样例内容决策、来源冲突优先级、设计 token/变量、shell 与真实可见边界差异、特殊节点分类、非渲染节点处理、复用或偏离决策，以及共享组件影响和验证计划。
-
-## 验证
-
-不能只靠单一信号声明还原完成。必须通过五层验证：
-
-1. **结构**：边界和 terminal 覆盖 100% 完成。
-2. **几何**：关键尺寸、inset、gap 从渲染结果断言，容差不超过 0.5px。
-3. **内容**：文本、字体、图标、素材和状态分支匹配审计。
-4. **视觉 diff**：同 viewport、同 scale、同状态下，对比实现截图和 Figma 截图。
-5. **状态覆盖**：每个范围内状态都有实现和验证结果。
-
-几何验证必须包含 `css-best-practices` 检查。还原边界内任何 `absolute` 或 `fixed` 定位都必须有和 out-of-flow 图层相关的理由。
-
-内容验证必须包含业务来源检查。只有确认静态 Figma 文案是产品拥有文案时，才能逐字比较；动态内容必须按拥有它的代码路径、API/schema、fixture 或用户规则验证。
-
-严格多边界任务中，每个边界都要先跑验收或 review gate，再进入下一个。如果使用 `figma-restoration-review`，critical 或 major deviation 会阻塞，除非已修复或用户明确接受。
+- “截图已经够清楚了” -> 回到 `figma-design-audit`；截图不能替代节点遍历或几何推导。
+- “Figma 审计还有 blocker，但答案大概率很明显” -> 先从来源解决，或实现前询问成组问题。
+- “Figma x/y 意味着每个节点都应该 absolute” -> 使用 `css-best-practices`；Figma 坐标是测量证据，不是 CSS 策略。
+- “review 发现 deviation，所以在 review skill 里修” -> 切回实现模式；`figma-restoration-review` 是只读。
 
 ## 完成信号
 
-只有全部条件已验证，任务才算完成：
+只有满足这些条件，协调式还原才算完成：
 
-1. 还原边界已明确并记录。
-2. 每个范围内可见节点都读到 terminal depth。
-3. 每个 shell-capable 节点都有展开依据和完成证明。
-4. 间距由命名参考节点和公式推导。
-5. 每个主要容器垂直和水平闭环通过。
-6. 状态矩阵覆盖所有范围内状态。
-7. 五层验证全部运行。
-8. CSS 策略满足 `css-best-practices`，所有绝对/固定定位都有合理 out-of-flow 原因。
-9. ledger 中没有未解决的 critical unknown。
-10. 复用组件或 token 有一致性证明，或偏离已记录。
-11. 每个非渲染节点都有处理决策：交给平台、转成行为，或有理由排除。
-12. 每个影响业务的文本、字段、列表项、数量、默认/选中分支、权限分支、条件展示规则，都有业务来源或明确 unknown。
-13. 多边界任务中的每个边界都有 PASS/FAIL/blocked 状态。
-14. 修改共享组件时，已记录影响面。
-
-缺少任何一项，都必须明确说明，不要说成“基本还原”。
-
-## Popup / Sheet / Modal / Drawer 补充规则
-
-边界是 overlay 类模块时，还要确认：
-
-- 遮罩和 sheet 容器分开审计。
-- header shell、标题和关闭动作都被核算。
-- 主内容 stack 垂直闭环通过。
-- 行或选项状态明确列出，例如 selected 和 unselected。
-- 底部操作区和安全区处理要么包含在范围内，要么明确 out-of-scope。
+- Figma 审计阶段完成，或 blocker 状态已明确报告。
+- 如要求实现，代码变更遵循 `css-best-practices` 并保留业务来源决策。
+- 用户要求或高风险保真任务已运行 `figma-restoration-review`，或说明跳过原因。
+- 最终回复报告审计产物、实现变更文件、验证命令/结果、未解决 blocker，以及已运行的 review 结果。

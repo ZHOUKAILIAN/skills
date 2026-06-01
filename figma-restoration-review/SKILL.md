@@ -21,12 +21,12 @@ Identify every gap between the Figma source of truth and the current implementat
 
 ## When NOT To Use
 
-- The user wants to **implement** or **build** UI from Figma — use the `figma-1to1-ui-restoration` skill instead
+- The user wants to **implement** or **build** UI from Figma — use `figma-design-audit` first, then `figma-1to1-ui-restoration`
 - The user wants code changes or fixes applied — this skill only reports deviations
 
-## Relationship to `figma-1to1-ui-restoration`
+## Relationship to `figma-design-audit` and `figma-1to1-ui-restoration`
 
-The `figma-1to1-ui-restoration` skill governs development — it produces audit artifacts, derives geometry, and implements code. This skill governs **acceptance review** — it reads the same Figma data and compares it against what already exists. The two skills share the same fidelity standard and tolerance thresholds but serve different stages of the workflow.
+`figma-design-audit` governs Figma fact gathering — it reads the boundary, classifies nodes, derives geometry, and records blocking questions. `figma-1to1-ui-restoration` governs sequencing of the implementation flow. This skill governs **acceptance review** — it reads the same Figma data and compares it against what already exists. The three skills share the same fidelity standard and tolerance thresholds but serve different stages of the workflow.
 
 ## Constraints
 
@@ -36,7 +36,7 @@ If Figma MCP is unavailable or unauthenticated, stop immediately. Tell the user 
 
 ### Read-only — never modify code
 
-This skill produces a deviation checklist only. Do not edit, create, or delete any source files. If the user wants fixes applied, tell them to use `figma-1to1-ui-restoration` or apply the fixes manually.
+This skill produces a deviation checklist only. Do not edit, create, or delete any source files. If the user wants fixes applied, tell them to use `figma-1to1-ui-restoration` after the audit is ready, or apply the fixes manually.
 
 ### Read the implementation before reviewing
 
@@ -44,7 +44,7 @@ Read the actual source files that render the UI under review. Do not rely on ass
 
 ### Derive Figma values from geometry — read ALL nodes first, then calculate
 
-Follow the same geometry-derivation approach as `figma-1to1-ui-restoration`: derive spacing from raw `x`, `y`, `width`, `height` of parent and child nodes. Do not assume spacing from visual appearance alone.
+Follow the same geometry-derivation approach as `figma-design-audit`: derive spacing from raw `x`, `y`, `width`, `height` of parent and child nodes. Do not assume spacing from visual appearance alone.
 
 **Figma node trees are often asymmetric.** Child nodes under the same parent may have different depths, different sub-structures, or inconsistent grouping. Do not assume sibling nodes share the same structure. The correct process is:
 

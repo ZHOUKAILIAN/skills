@@ -31,11 +31,20 @@ Use this section when the task includes more than one node, screen, state, or fl
 | API / schema / runtime data | Field names, error codes, data shape, live integration | {{api_source_notes}} |
 | Existing analogous code | Reusable interaction pattern, data flow, error handling | {{code_source_notes}} |
 
+## Blocking Questions
+
+Use this section for implementation-affecting unknowns that could not be resolved from available sources. Do not ask one by one during the audit; group them and ask after the first complete pass.
+
+| Question | Why it matters | Sources checked | Decision needed from user | Status |
+| --- | --- | --- | --- | --- |
+| {{blocking_question_1}} | {{blocking_why_1}} | {{blocking_sources_1}} | {{blocking_decision_1}} | {{blocking_status_1}} |
+| {{blocking_question_2}} | {{blocking_why_2}} | {{blocking_sources_2}} | {{blocking_decision_2}} | {{blocking_status_2}} |
+
 ## Read Basis
 
 - `get_metadata({{root_node}})`
 - `get_design_context({{root_node}})`
-- `get_screenshot({{root_node}})`
+- Optional screenshot support: {{screenshot_support_status}}
 - Additional child reads:
   - {{child_read_1}}
   - {{child_read_2}}
@@ -125,12 +134,14 @@ flowchart TD
 | Closure formula | `{{horizontal_closure_formula}}` |
 | Closure result | `{{horizontal_closure_result}}` |
 
-## CSS Strategy
+## CSS Handoff Values
 
-| Container or relationship | Geometry evidence | CSS primitive | `css-best-practices` decision |
+This section records Figma measurement evidence only. CSS primitives and implementation strategy are owned by `css-best-practices`.
+
+| Container or relationship | Geometry evidence | Target value | Implementation note |
 | --- | --- | --- | --- |
-| {{layout_container_1}} | {{layout_evidence_1}} | {{layout_primitive_1}} | {{positioning_decision_1}} |
-| {{layout_container_2}} | {{layout_evidence_2}} | {{layout_primitive_2}} | {{positioning_decision_2}} |
+| {{layout_container_1}} | {{layout_evidence_1}} | {{target_value_1}} | {{implementation_note_1}} |
+| {{layout_container_2}} | {{layout_evidence_2}} | {{target_value_2}} | {{implementation_note_2}} |
 
 ## Shell vs Real Visible Bounds
 
@@ -218,7 +229,7 @@ flowchart TD
 | Structure | {{structure_verification_status}} | {{structure_verification_evidence}} |
 | Geometry | {{geometry_verification_status}} | {{geometry_verification_evidence}} |
 | Content and business logic | {{content_business_verification_status}} | {{content_business_verification_evidence}} |
-| Visual diff | {{visual_diff_status}} | {{visual_diff_evidence}} |
+| Screenshot support | {{screenshot_support_verification_status}} | {{screenshot_support_verification_evidence}} |
 | State coverage | {{state_verification_status}} | {{state_verification_evidence}} |
 
 ## Current Read Outcome
@@ -234,6 +245,7 @@ flowchart TD
 - Shared component impact review: {{shared_component_impact_status}}
 - Non-renderable review: {{non_renderable_review}}
 - Critical unknowns: {{critical_unknowns}}
-- CSS strategy: {{layout_strategy_status}}
+- CSS handoff values: {{css_handoff_values_status}}
 - Remaining uncertainty: {{remaining_uncertainty}}
+- Blocking questions: {{blocking_questions_status}}
 - Ready for implementation: {{implementation_ready}}

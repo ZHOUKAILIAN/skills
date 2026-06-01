@@ -16,12 +16,12 @@
 | Vertical closure | `pass` |
 | Horizontal closure | `pass` |
 | Key geometry tolerance | `{{geometry_tolerance}}` |
-| CSS best practices | `css-best-practices satisfied; positioning exceptions justified` |
+| CSS handoff values | `geometry evidence captured; CSS primitives owned by css-best-practices` |
 | State coverage | `100%` |
 | Business logic source coverage | `100% of business-affecting content and branches mapped or explicitly blocked` |
 | Shared-component impact review | `complete when shared components were edited` |
 | Per-boundary review gate | `PASS or explicitly blocked/accepted` |
-| Visual diff status | `pass` |
+| Screenshot support | `optional; not required for readiness` |
 
 ## Restoration Manifest Gate
 
@@ -95,7 +95,7 @@
 | Shared component consumers | {{expected_consumer_scope}} | {{actual_consumer_scope}} | {{consumer_scope_result}} |
 | Mock usage | {{expected_mock_usage}} | {{actual_mock_usage}} | {{mock_usage_result}} |
 
-## Visual Diff Check
+## Screenshot Support Check
 
 | State | Figma source | Implementation source | Viewport / crop | Diff result | Notes |
 | --- | --- | --- | --- | --- | --- |
@@ -115,4 +115,5 @@
 - Blocking failures: {{blocking_failures}}
 - Business logic source coverage: {{business_logic_source_coverage}}
 - Shared-component impact review: {{shared_component_impact_status}}
+- Blocking questions: {{blocking_questions_status}}
 - Remaining risk: {{remaining_risk}}
