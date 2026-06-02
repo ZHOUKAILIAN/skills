@@ -29,6 +29,8 @@ Right: record the sample as a visual example, resolve the business source, and a
 
 If the Figma boundary is ambiguous, first inspect the available Figma metadata. Ask only when multiple plausible boundaries remain and choosing one would change scope.
 
+If the user provides a list of states, treat it as the required seed state list, not as proof that the state set is complete. Audit every user-provided state, then actively look for additional states in Figma variants, visible alternate frames, interaction-proxy nodes, existing code branches, product requirements, schema, and analogous UI. Add confirmed states to the manifest. Only ask the user about remaining state gaps after available sources have been checked and the gap affects implementation or acceptance.
+
 ## When To Use
 
 - The user provides a Figma URL, `fileKey`, or `node-id`.
@@ -44,9 +46,9 @@ If the Figma boundary is ambiguous, first inspect the available Figma metadata. 
 
 ## Mode And Fallback Rules
 
-Preferred mode: use Figma MCP node data and metadata to traverse the boundary. If Figma MCP is unavailable, unauthenticated, or cannot read the requested node, stop and report `not ready`; do not fabricate values from screenshots, memory, or visual guesses.
+Preferred mode: use Figma MCP node data and metadata to traverse the boundary. If Figma MCP is unavailable, unauthenticated, or cannot read the requested node, stop and report `not ready`; do not fabricate values from images, memory, or visual guesses.
 
-Screenshots are optional support evidence only. A screenshot can help orient the audit, but it cannot replace terminal node traversal, shell expansion, geometry derivation, or business-source resolution.
+The current Figma restoration workflow does not support screenshot-based audit or acceptance. The required evidence is Figma node data and derived values that can be compared numerically against the implementation.
 
 ## Programmatic Assets
 
@@ -99,7 +101,7 @@ If these artifacts are missing or fail verification, the audit is not ready for 
 
 The audit is not complete until every in-scope visible node under the restoration boundary has been read to terminal depth.
 
-Do not sample repeated items. Do not infer child structure from siblings. Do not stop at a frame, group, component, instance, icon wrapper, slot wrapper, or design-system shell just because the outer layer looks complete. Do not use screenshots as a substitute for node traversal.
+Do not sample repeated items. Do not infer child structure from siblings. Do not stop at a frame, group, component, instance, icon wrapper, slot wrapper, or design-system shell just because the outer layer looks complete. Do not use images or screenshots as a substitute for node traversal.
 
 Every visible node must appear in the node ledger with:
 
@@ -184,6 +186,17 @@ Do not interrupt the user one item at a time. During audit, collect blocking que
 
 The audit cannot hand off to CSS implementation while any blocking question remains unresolved.
 
+## State Coverage Gate
+
+State scope has two layers:
+
+1. User-provided seed states: every state the user named must be represented in the restoration manifest and state matrix.
+2. Discovered states: every implementation-affecting state discovered from Figma, code, product docs, schema, or analogous flows must be added, marked not applicable with evidence, or converted into a grouped blocking question.
+
+Do not assume the user's state list is exhaustive. Do not assume a Figma visual state is business-owned. For each state, record the Figma node or source, visual delta, business trigger or source, implementation target, and whether code must change.
+
+If a discovered state cannot be confirmed from available sources, include one grouped question after the audit pass. The audit is not ready while a required state is missing, silently skipped, or marked as unknown.
+
 ## Guardrails
 
 - Read Figma and related source material only. Do not edit project code, CSS, component files, tests, design tokens, or product docs as part of this skill.
@@ -191,11 +204,11 @@ The audit cannot hand off to CSS implementation while any blocking question rema
 - Do not perform final implementation acceptance review. That belongs to `figma-restoration-review` after implementation exists.
 - Do not turn Figma sample content into product-owned business logic without a business source or resolved user answer.
 
-## Screenshot Boundary
+## Image Boundary
 
-Screenshots can help with orientation, visual state matching, or later review, but they are not required for this audit and cannot replace node traversal, shell expansion, or geometry derivation.
+Screenshot-based audit and visual diff are out of scope for the current restoration workflow. Do not request or require screenshots for Figma audit readiness.
 
-The mandatory evidence is Figma node data and derived target values. Do not use "looks close" as an audit result.
+The mandatory evidence is Figma node data, derived target values, and later implementation measurements that can be compared numerically. Do not use "looks close" as an audit result.
 
 ## Handoff Boundary
 

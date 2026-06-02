@@ -21,7 +21,7 @@
 | Business logic source coverage | `100% of business-affecting content and branches mapped or explicitly blocked` |
 | Shared-component impact review | `complete when shared components were edited` |
 | Per-boundary review gate | `PASS or explicitly blocked/accepted` |
-| Screenshot support | `optional; not required for readiness` |
+| Screenshot support | `not supported; node data and numeric measurements only` |
 
 ## Restoration Manifest Gate
 
@@ -95,12 +95,12 @@
 | Shared component consumers | {{expected_consumer_scope}} | {{actual_consumer_scope}} | {{consumer_scope_result}} |
 | Mock usage | {{expected_mock_usage}} | {{actual_mock_usage}} | {{mock_usage_result}} |
 
-## Screenshot Support Check
+## Numeric Measurement Check
 
-| State | Figma source | Implementation source | Viewport / crop | Diff result | Notes |
+| State | Figma numeric source | Implementation measurement source | Measured property | Result | Notes |
 | --- | --- | --- | --- | --- | --- |
-| {{diff_state_1}} | {{figma_image_1}} | {{impl_image_1}} | {{viewport_rule_1}} | {{diff_result_1}} | {{diff_notes_1}} |
-| {{diff_state_2}} | {{figma_image_2}} | {{impl_image_2}} | {{viewport_rule_2}} | {{diff_result_2}} | {{diff_notes_2}} |
+| {{measure_state_1}} | {{figma_numeric_source_1}} | {{implementation_measurement_source_1}} | {{measured_property_1}} | {{measurement_result_1}} | {{measurement_notes_1}} |
+| {{measure_state_2}} | {{figma_numeric_source_2}} | {{implementation_measurement_source_2}} | {{measured_property_2}} | {{measurement_result_2}} | {{measurement_notes_2}} |
 
 ## Commands Run
 

@@ -7,6 +7,8 @@
 - Source link: `{{figma_url}}`
 - Purpose: {{purpose}}
 - Requested boundary: {{boundary_rule}}
+- User-provided seed states: {{seed_states}}
+- Discovered states added by audit: {{discovered_states}}
 - Included states: {{included_states}}
 - Excluded states or out-of-scope areas: {{excluded_scope}}
 - Business source(s): {{business_sources}}
@@ -44,7 +46,7 @@ Use this section for implementation-affecting unknowns that could not be resolve
 
 - `get_metadata({{root_node}})`
 - `get_design_context({{root_node}})`
-- Optional screenshot support: {{screenshot_support_status}}
+- Screenshot use: not supported for current restoration audit; use node data only
 - Additional child reads:
   - {{child_read_1}}
   - {{child_read_2}}
@@ -159,11 +161,20 @@ This section records Figma measurement evidence only. CSS primitives and impleme
 
 ## State Matrix
 
+User-provided states are required seed states, not proof that the state set is exhaustive. This matrix must include every user-provided state plus every implementation-affecting state discovered from Figma, code, product docs, schema, or analogous UI.
+
 | State | Node | Figma visual evidence | Business trigger/source | Must change in code |
 | --- | --- | --- | --- | --- |
 | {{state_1}} | `{{state_node_1}}` | {{state_diff_1}} | {{business_trigger_1}} | {{must_change_1}} |
 | {{state_2}} | `{{state_node_2}}` | {{state_diff_2}} | {{business_trigger_2}} | {{must_change_2}} |
 | {{state_3}} | `{{state_node_3}}` | {{state_diff_3}} | {{business_trigger_3}} | {{must_change_3}} |
+
+## State Discovery Ledger
+
+| Candidate state | Source | Decision | Evidence | Blocking question if unresolved |
+| --- | --- | --- | --- | --- |
+| {{candidate_state_1}} | {{candidate_state_source_1}} | {{candidate_state_decision_1}} | {{candidate_state_evidence_1}} | {{candidate_state_blocker_1}} |
+| {{candidate_state_2}} | {{candidate_state_source_2}} | {{candidate_state_decision_2}} | {{candidate_state_evidence_2}} | {{candidate_state_blocker_2}} |
 
 ### Common State Checklist
 
@@ -229,7 +240,7 @@ This section records Figma measurement evidence only. CSS primitives and impleme
 | Structure | {{structure_verification_status}} | {{structure_verification_evidence}} |
 | Geometry | {{geometry_verification_status}} | {{geometry_verification_evidence}} |
 | Content and business logic | {{content_business_verification_status}} | {{content_business_verification_evidence}} |
-| Screenshot support | {{screenshot_support_verification_status}} | {{screenshot_support_verification_evidence}} |
+| Numeric implementation alignment | {{numeric_alignment_status}} | {{numeric_alignment_evidence}} |
 | State coverage | {{state_verification_status}} | {{state_verification_evidence}} |
 
 ## Current Read Outcome

@@ -19,6 +19,7 @@ README_REQUIRED_HEADINGS = [
     "## Horizontal Closure Check",
     "## CSS Handoff Values",
     "## State Matrix",
+    "## State Discovery Ledger",
     "## Business Logic Source Map",
     "## Shared Component Impact",
     "## Shell vs Real Visible Bounds",

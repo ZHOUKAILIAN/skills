@@ -8,7 +8,7 @@
 
 - `name`: `zhoukailian-repeated-workflows`
 - `description`: 当 Zhou Kailian 提出 CrewPals、Figma、飞书/Lark、agent-team、调试、测试、PR、数据一致性或 skill 编写等重复工作流需求，并且应路由到已知本地流程时使用。
-- `sub_skills`: `zhoukailian-development-preferences`, `ai-doc-driven-dev`, `figma-design-audit`, `figma-1to1-ui-restoration`, `figma-restoration-review`, `css-best-practices`, `cst`, `crewpals-sports-metrics-investigation`, `agent-team-traceability`, `lark-doc`, `lark-base`, `lark-sheets`, `e2e-coverage-guard`, `skill-lifecycle`, `skill-standard`, `task-standard`, `five-layer-classifier`, `code-reviewer`, `receiving-code-review`
+- `sub_skills`: `zhoukailian-development-preferences`, `ai-doc-driven-dev`, `figma-design-audit`, `figma-1to1-ui-restoration`, `figma-restoration-review`, `css-best-practices`, `cst`, `crewpals-sports-metrics-investigation`, `agent-team-traceability`, `lark-doc`, `lark-base`, `lark-sheets`, `e2e-coverage-guard`, `skill-lifecycle`, `skill-standard`, `five-layer-classifier`, `code-reviewer`, `receiving-code-review`
 
 ## Zhou Kailian 重复工作流
 
@@ -30,14 +30,14 @@
 
 | 用户信号 | 路由 |
 | --- | --- |
-| Figma URL、node ID、1:1、UI 还原、弹窗/页面/组件视觉工作 | 先使用 `figma-design-audit`，再使用 `figma-1to1-ui-restoration` 和 `css-best-practices`；实现存在后，把只读验收检查路由给 `figma-restoration-review`。 |
-| 只读 Figma 保真检查，或“review this restoration” | 使用 `figma-restoration-review`；用截图证据和优先级报告差异。 |
+| Figma URL、node ID、1:1、UI 还原、弹窗/页面/组件视觉工作 | 使用 `figma-1to1-ui-restoration` 作为单 session 协调入口；它必须先跑 `figma-design-audit`，再用 `css-best-practices` 做样式实现决策。 |
+| 只读 Figma 保真检查，或“review this restoration” | 使用 `figma-restoration-review`；用 Figma 节点值、派生数值目标、实现测量值和优先级报告差异。 |
 | CrewPals 客服问题、bug、日志、SLS、MySQL、Redis、用户状态、生产/测试症状 | 使用 `cst` 或环境相关的只读 skills。产出根因、证据、影响和下一步。 |
 | 跑步数据一致性、配速、距离、最佳纪录、FIT 文件、Garmin、Coros、华为、暂停、异常速度、图表 | 使用 `crewpals-sports-metrics-investigation`：映射前端、后端、存储数据、展示页面和指标定义；端到端验证代表性记录。 |
 | 飞书文档、wiki、Base、表格、审批或报告产物 | 使用匹配的 `lark-*` skill。在 CrewPals 工作中，对流程较重的说明优先使用中文文档，并配表格和 PlantUML/Mermaid。 |
 | 需求/设计文档、标准文档、文档漂移、需要回写功能文档的 bug | 对文档优先项目使用 `ai-doc-driven-dev`。个人基础设施仓库按仓库原生设计/测试/changelog 约定，不强行套 CrewPals requirement/design pair。 |
 | agent-team、run、PRD/dev/QA/acceptance、提示词 trace、skill 注入、阶段交接、工作流状态 | 使用 `agent-team-traceability` 做检查/设计/修复；运行时执行按目标仓库自己的运行说明和状态产物处理。 |
-| skill 创建、从历史提炼 skill、skill 修复、skill 同步 | 使用 `skill-lifecycle` 和 `skill-standard`；对任务型 skills 使用 `task-standard`。 |
+| skill 创建、从历史提炼 skill、skill 修复、skill 同步 | 使用 `skill-lifecycle` 和 `skill-standard`；任务专属 gate 写在被编辑的 skill 内。 |
 | 来自飞书 bug/feature 记录的 E2E 覆盖 | 使用 `e2e-coverage-guard`；每条范围内记录都要覆盖，或标记不适用并说明原因。 |
 | 代码 review 请求或 review 反馈 | review 使用 `code-reviewer`；根据 review 评论改代码前使用 `receiving-code-review`。 |
 | 分支、worktree、push、PR/MR、发布交接 | 使用既有 git/worktree 实践；push/PR 前验证，并报告分支和检查结果。 |
@@ -46,7 +46,7 @@
 
 1. 在大量工作前，用一句简短更新说明项目上下文和选中的路由。
 2. 加载路由 skill 和必要的偏好 skill。
-3. 按上下文确定事实来源：个人仓库 docs/tests/traces，或 CrewPals 的 Figma/代码/文档/日志/数据库/飞书/运行时截图。
+3. 按上下文确定事实来源：个人仓库 docs/tests/traces，或 CrewPals 的 Figma 节点数据/代码/文档/日志/数据库/飞书/运行时证据。
 4. 当任务涉及多个状态、记录、文件、节点或环境时，要做范围核算。
 5. 按路由要求提供验证证据。除非用户明确接受较低置信度报告，否则缺少验证会阻塞完成。
 

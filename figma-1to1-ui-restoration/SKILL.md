@@ -7,11 +7,11 @@ description: Use when a user provides a Figma URL, fileKey, or node-id and wants
 
 ## Core Rule
 
-Treat this skill as the coordinator for exact Figma-to-code restoration. It does not own the detailed Figma audit rules, CSS implementation rules, or final read-only review rules. It routes the task through the right owner skill and blocks phase changes when the previous phase has not produced verifiable evidence.
+Treat this skill as the single-session coordinator for exact Figma-to-code restoration when no external runtime is controlling the workflow. It does not own the detailed Figma audit rules, CSS implementation rules, or final read-only review rules. It routes the task through the right owner skill and blocks phase changes when the previous phase has not produced verifiable evidence.
 
 ## Priority
 
-User intent sets the top-level goal, but phase ownership is fixed: `figma-design-audit` owns Figma facts, `css-best-practices` owns implementation strategy, and `figma-restoration-review` owns read-only acceptance review. This skill only sequences those phases and stops handoff when the required evidence is missing.
+User intent sets the top-level goal, but phase ownership is fixed: `figma-design-audit` owns Figma facts, `css-best-practices` owns implementation strategy, and `figma-restoration-review` owns read-only acceptance review. This skill only sequences those phases inside the current assistant session and stops handoff when the required evidence is missing.
 
 ## Active Mode
 
@@ -19,13 +19,15 @@ Use this skill only when the user wants implementation or restoration, not read-
 
 If the user asks only to inspect Figma before coding, use `figma-design-audit`. If the user asks only to compare an existing implementation against Figma, use `figma-restoration-review`.
 
+If an external workflow runtime is already controlling stages and gates, do not let this skill override that runtime. Use the runtime's stage contract and inject the owner skills where appropriate.
+
 ## Workflow
 
 1. Run the Figma fact-gathering phase with `figma-design-audit`.
 2. Do not write application code until the Figma audit says `Ready for implementation: yes` and has no unresolved blocking questions.
 3. Run the implementation phase with `css-best-practices`, using the audited Figma values as measurement evidence and the project codebase as the implementation context.
 4. Preserve product-owned business logic unless a PRD, API/schema, existing source of truth, or explicit user answer changes it.
-5. After implementation exists, use `figma-restoration-review` for read-only acceptance review when the user asks for review, the task requires fidelity sign-off, or the implementation has high visual risk.
+5. After implementation exists, use `figma-restoration-review` for read-only numeric acceptance review when the user asks for review, the task requires fidelity sign-off, or the implementation has high visual risk.
 
 ## Handoff Gates
 
@@ -57,7 +59,7 @@ The handoff from implementation to `figma-restoration-review` is allowed only af
 
 ## Red Flags
 
-- "The screenshot looks clear enough" -> return to `figma-design-audit`; screenshots do not replace node traversal or geometry derivation.
+- "The UI can be restored from a screenshot" -> return to `figma-design-audit`; the current workflow requires Figma node values and numeric geometry alignment.
 - "The Figma audit has blockers, but the likely answer is obvious" -> resolve from sources or ask the grouped questions before implementation.
 - "Figma x/y means every node should be absolutely positioned" -> use `css-best-practices`; Figma coordinates are measurement evidence, not CSS strategy.
 - "Review found deviations, so fix them inside the review skill" -> switch back to implementation mode; `figma-restoration-review` is read-only.

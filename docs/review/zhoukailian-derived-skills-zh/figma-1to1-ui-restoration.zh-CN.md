@@ -12,7 +12,9 @@
 
 ## 核心规则
 
-这个 skill 是精确 Figma-to-code 还原的协调入口。它不拥有详细的 Figma 审计规则、CSS 实现规则或最终只读复核规则。它负责把任务路由给正确 owner，并且在上一阶段没有产出可验证证据时阻止进入下一阶段。
+这个 skill 是没有外部 runtime 控制 workflow 时，单个 assistant session 内精确 Figma-to-code 还原的协调入口。它不拥有详细的 Figma 审计规则、CSS 实现规则或最终只读复核规则。它负责把任务路由给正确 owner，并且在上一阶段没有产出可验证证据时阻止进入下一阶段。
+
+用户意图决定顶层目标，但阶段 owner 固定：`figma-design-audit` 拥有 Figma 事实，`css-best-practices` 拥有实现策略，`figma-restoration-review` 拥有只读验收复核。本 skill 只在当前 assistant session 内排序这些阶段，并在缺少必需证据时阻止 handoff。
 
 ## 活动模式
 
@@ -20,13 +22,15 @@
 
 如果用户只是要求编码前检查 Figma，使用 `figma-design-audit`。如果用户只是要求对比既有实现和 Figma，使用 `figma-restoration-review`。
 
+如果已有外部 workflow runtime 控制 stage 和 gate，不要让这个 skill 覆盖 runtime。应按 runtime 的 stage contract 执行，并在对应阶段注入 owner skills。
+
 ## 工作流
 
 1. 先用 `figma-design-audit` 执行 Figma 事实收集阶段。
 2. 在 Figma 审计标记 `Ready for implementation: yes` 且没有未解决 Blocking Questions 之前，不写应用代码。
 3. 实现阶段使用 `css-best-practices`，把已审计 Figma 值当作测量证据，把项目代码库当作实现上下文。
 4. 除非 PRD、API/schema、既有事实来源或用户明确回答改变业务规则，否则保留产品已有业务逻辑。
-5. 实现存在后，当用户要求 review、任务需要保真签收或视觉风险较高时，用 `figma-restoration-review` 做只读验收复核。
+5. 实现存在后，当用户要求 review、任务需要保真签收或视觉风险较高时，用 `figma-restoration-review` 做只读数值验收复核。
 
 ## Handoff Gate
 
@@ -58,7 +62,7 @@
 
 ## Red Flags
 
-- “截图已经够清楚了” -> 回到 `figma-design-audit`；截图不能替代节点遍历或几何推导。
+- “可以靠截图还原 UI” -> 回到 `figma-design-audit`；当前流程要求 Figma node values 和数值几何对齐。
 - “Figma 审计还有 blocker，但答案大概率很明显” -> 先从来源解决，或实现前询问成组问题。
 - “Figma x/y 意味着每个节点都应该 absolute” -> 使用 `css-best-practices`；Figma 坐标是测量证据，不是 CSS 策略。
 - “review 发现 deviation，所以在 review skill 里修” -> 切回实现模式；`figma-restoration-review` 是只读。
