@@ -23,7 +23,7 @@ This router is based on a 2026-05-27 scan of local Codex history: 770 session fi
 
 | User signal | Route |
 | --- | --- |
-| Figma URL, node ID, 1:1, UI restoration, popup/page/component visual work | Use `figma-1to1-ui-restoration` as the single-session coordinator; it must run `figma-design-audit` before CSS implementation and use `css-best-practices` for styling decisions. |
+| Figma URL, node ID, 1:1, UI restoration, popup/page/component visual work | Use `figma-design-audit` first. Implement only after the audit is ready, using `css-best-practices` for CSS/layout decisions. Use `figma-restoration-review` only for read-only post-implementation review. |
 | Read-only Figma fidelity check or "review this restoration" | Use `figma-restoration-review`; report differences with Figma node values, derived numeric targets, implementation measurements, and priority. |
 | CrewPals customer issue, bug, logs, SLS, MySQL, Redis, user state, prod/test symptoms | Use `cst` or the environment-specific read-only skills. Produce root cause, evidence, impact, and next action. |
 | Running data consistency, pace, distance, best record, FIT files, Garmin, Coros, Huawei, pause, abnormal speed, charts | Use `crewpals-sports-metrics-investigation`: map frontend, backend, stored data, display surfaces, and metric definition; verify representative records end to end. |

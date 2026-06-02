@@ -21,12 +21,12 @@ Identify every gap between the Figma source of truth and the current implementat
 
 ## When NOT To Use
 
-- The user wants to **implement** or **build** UI from Figma — use `figma-design-audit` first, then `figma-1to1-ui-restoration`
+- The user wants to **implement** or **build** UI from Figma — use `figma-design-audit` first, then implement with `css-best-practices` once the audit is ready.
 - The user wants code changes or fixes applied — this skill only reports deviations
 
-## Relationship to `figma-design-audit` and `figma-1to1-ui-restoration`
+## Relationship to `figma-design-audit`
 
-`figma-design-audit` governs Figma fact gathering — it reads the boundary, classifies nodes, derives geometry, and records blocking questions. `figma-1to1-ui-restoration` governs sequencing of the implementation flow. This skill governs **acceptance review** — it reads the same Figma data and compares it against what already exists. The three skills share the same fidelity standard and tolerance thresholds but serve different stages of the workflow.
+`figma-design-audit` governs Figma fact gathering — it reads the boundary, classifies nodes, derives geometry, and records blocking questions. This skill governs **acceptance review** — it reads the same Figma data and compares it against what already exists. CSS implementation decisions belong to `css-best-practices`.
 
 ## Constraints
 
@@ -40,7 +40,7 @@ The current restoration workflow does not use screenshots, overlay diff, or visu
 
 ### Read-only — never modify code
 
-This skill produces a deviation checklist only. Do not edit, create, or delete any source files. If the user wants fixes applied, tell them to use `figma-1to1-ui-restoration` after the audit is ready, or apply the fixes manually.
+This skill produces a deviation checklist only. Do not edit, create, or delete any source files. If the user wants fixes applied, return to implementation mode and use `css-best-practices` with the completed Figma audit.
 
 ### Read the implementation before reviewing
 

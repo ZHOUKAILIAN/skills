@@ -8,7 +8,7 @@
 
 - `name`: `zhoukailian-repeated-workflows`
 - `description`: 当 Zhou Kailian 提出 CrewPals、Figma、飞书/Lark、agent-team、调试、测试、PR、数据一致性或 skill 编写等重复工作流需求，并且应路由到已知本地流程时使用。
-- `sub_skills`: `zhoukailian-development-preferences`, `ai-doc-driven-dev`, `figma-design-audit`, `figma-1to1-ui-restoration`, `figma-restoration-review`, `css-best-practices`, `cst`, `crewpals-sports-metrics-investigation`, `agent-team-traceability`, `lark-doc`, `lark-base`, `lark-sheets`, `e2e-coverage-guard`, `skill-lifecycle`, `skill-standard`, `five-layer-classifier`, `code-reviewer`, `receiving-code-review`
+- `sub_skills`: `zhoukailian-development-preferences`, `ai-doc-driven-dev`, `figma-design-audit`, `figma-restoration-review`, `css-best-practices`, `cst`, `crewpals-sports-metrics-investigation`, `agent-team-traceability`, `lark-doc`, `lark-base`, `lark-sheets`, `e2e-coverage-guard`, `skill-lifecycle`, `skill-standard`, `five-layer-classifier`, `code-reviewer`, `receiving-code-review`
 
 ## Zhou Kailian 重复工作流
 
@@ -30,7 +30,7 @@
 
 | 用户信号 | 路由 |
 | --- | --- |
-| Figma URL、node ID、1:1、UI 还原、弹窗/页面/组件视觉工作 | 使用 `figma-1to1-ui-restoration` 作为单 session 协调入口；它必须先跑 `figma-design-audit`，再用 `css-best-practices` 做样式实现决策。 |
+| Figma URL、node ID、1:1、UI 还原、弹窗/页面/组件视觉工作 | 先使用 `figma-design-audit`。审计 ready 后才能实现，并用 `css-best-practices` 做 CSS/layout 决策。`figma-restoration-review` 只用于实现后的只读复核。 |
 | 只读 Figma 保真检查，或“review this restoration” | 使用 `figma-restoration-review`；用 Figma 节点值、派生数值目标、实现测量值和优先级报告差异。 |
 | CrewPals 客服问题、bug、日志、SLS、MySQL、Redis、用户状态、生产/测试症状 | 使用 `cst` 或环境相关的只读 skills。产出根因、证据、影响和下一步。 |
 | 跑步数据一致性、配速、距离、最佳纪录、FIT 文件、Garmin、Coros、华为、暂停、异常速度、图表 | 使用 `crewpals-sports-metrics-investigation`：映射前端、后端、存储数据、展示页面和指标定义；端到端验证代表性记录。 |
