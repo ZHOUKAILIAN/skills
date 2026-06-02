@@ -1,0 +1,34 @@
+{
+  "figma_file": "{{file_key}}",
+  "root_node": "{{root_node}}",
+  "boundary_rule": "{{boundary_rule}}",
+  "nodes": [
+    {
+      "id": "{{node_1}}",
+      "parent_id": "{{parent_1}}",
+      "name": "{{name_1}}",
+      "type": "{{type_1}}",
+      "visible": true,
+      "read_status": "read",
+      "child_ids": ["{{node_2}}", "{{node_3}}"]
+    },
+    {
+      "id": "{{node_2}}",
+      "parent_id": "{{node_1}}",
+      "name": "{{name_2}}",
+      "type": "{{type_2}}",
+      "visible": true,
+      "read_status": "read",
+      "child_ids": []
+    },
+    {
+      "id": "{{node_3}}",
+      "parent_id": "{{node_1}}",
+      "name": "{{name_3}}",
+      "type": "{{type_3}}",
+      "visible": true,
+      "read_status": "read",
+      "child_ids": []
+    }
+  ]
+}

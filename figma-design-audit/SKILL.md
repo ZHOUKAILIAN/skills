@@ -54,8 +54,9 @@ The current Figma restoration workflow does not support screenshot-based audit o
 
 - `assets/templates/figma-audit-readme-template.md`: boundary audit report template.
 - `assets/templates/figma-all-child-nodes-template.md`: exhaustive node ledger template.
+- `assets/templates/figma-node-snapshot-template.json`: structured Figma node snapshot template used to prove every visible node was read.
 - `assets/templates/figma-verification-template.md`: audit-gate verification template for proving the Figma audit package is handoff-ready.
-- `scripts/verify_figma_audit.py`: checks the minimum audit contract for the README and node ledger.
+- `scripts/verify_figma_audit.py`: checks the minimum audit contract for the README, node ledger, and Figma node snapshot.
 
 Use the templates when the task needs durable audit artifacts. Use the verifier before marking the audit ready for CSS implementation.
 
@@ -65,8 +66,8 @@ Use the templates when the task needs durable audit artifacts. Use the verifier 
 2. Read the boundary to terminal depth and classify every visible node.
 3. Resolve geometry, state, and business-source questions from Figma, code, docs, schema, runtime data, or user instructions.
 4. Record blocking questions only after the available sources have been checked.
-5. Write the audit README, node ledger, and manifest or verification artifact when needed.
-6. Run `scripts/verify_figma_audit.py` on durable artifacts.
+5. Write the audit README, node ledger, Figma node snapshot, and manifest or verification artifact when needed.
+6. Run `scripts/verify_figma_audit.py --readme <README> --ledger <ALL_CHILD_NODES> --figma-snapshot <FIGMA_NODE_SNAPSHOT>` on durable artifacts.
 7. If any gate fails, fix the specific failed item or stop and report `not ready`; do not hand off to CSS while blockers remain.
 
 ## Success Criteria
@@ -78,12 +79,13 @@ Use the templates when the task needs durable audit artifacts. Use the verifier 
 - Vertical and horizontal closure pass for each major container.
 - Every implementation-affecting state and business branch has a source or an explicit blocker.
 - All blocking questions are grouped, resolved when possible, and empty before implementation handoff.
-- The audit artifacts pass the local verifier.
+- The audit artifacts pass the local verifier with a Figma node snapshot.
 
 ## Verification
 
-- Mechanical check: `scripts/verify_figma_audit.py --readme <README> --ledger <ALL_CHILD_NODES>`
-- Manual check: confirm the README includes source priority, blocking questions, geometry closure, state matrix, and readiness status; confirm the ledger includes every in-scope visible node and its terminal or blocked proof.
+- Mechanical check: `scripts/verify_figma_audit.py --readme <README> --ledger <ALL_CHILD_NODES> --figma-snapshot <FIGMA_NODE_SNAPSHOT>`
+- Snapshot check: the verifier compares every in-scope visible node id in `figma-node-snapshot.json` against the ledger. Missing, duplicate, unreadable, blocked, unknown, or unexpanded visible nodes fail verification.
+- Manual check: confirm the README includes source priority, blocking questions, geometry closure, state matrix, and readiness status; confirm the ledger includes every in-scope visible node and its terminal proof.
 - Failure handling: if verification fails, repair the specific gap and rerun; if the gap cannot be resolved from available sources, report `not ready` with the failed gate and evidence.
 
 ## Required Audit Outputs
@@ -92,6 +94,7 @@ Before handoff to CSS implementation, produce:
 
 - A restoration manifest when the task includes more than one screen, component boundary, state, variant, or flow step.
 - A boundary README with scope, source priority, read basis, node classification, derived geometry, vertical and horizontal design closure, state matrix, business-source map, blocking questions, verification summary, and readiness status.
+- A Figma node snapshot JSON listing every in-scope visible node read from Figma, including id, parent id, name, type, visibility, read status, and child ids.
 - A complete node ledger listing every in-scope visible node with classification, geometry, child count, expansion status, terminal proof, exclusion reason, or blocker reason.
 - A blocking questions list when implementation-affecting uncertainty remains after available source checks.
 
@@ -119,6 +122,8 @@ Allowed ledger statuses:
 - `blocked`: should be read but cannot be read with current access, tooling, or source data.
 
 If any in-scope visible node remains `unknown`, `unexpanded`, or `blocked`, the audit cannot be marked ready for CSS implementation.
+
+The node-read proof is the Figma node snapshot, not the README prose. The snapshot must contain every in-scope visible node discovered during traversal. `scripts/verify_figma_audit.py` must compare that snapshot against the node ledger before the audit can claim terminal coverage.
 
 ## Node Classification Gate
 
@@ -235,7 +240,7 @@ The audit is complete only when all conditions are true:
 8. State matrix covers all in-scope Figma visual states and separates business-driven states from visual examples.
 9. Business-affecting content and branches have source coverage, or resolved user answers are recorded.
 10. Blocking questions are empty or explicitly answered.
-11. `scripts/verify_figma_audit.py` passes for generated README and ledger artifacts.
+11. `scripts/verify_figma_audit.py` passes for generated README, ledger, and Figma node snapshot artifacts.
 
 If any item is missing, report `not ready for CSS implementation` with the failed gate and evidence.
 
@@ -245,6 +250,7 @@ When reporting audit completion or `not ready`, include:
 
 - Artifact paths or inline sections produced.
 - Boundary count, visible node count, terminal/expanded/excluded/blocked counts, and any skipped out-of-scope count.
+- Figma node snapshot path and snapshot-vs-ledger coverage result.
 - Figma reads and business sources inspected.
 - Geometry closure status for each major container.
 - Blocking questions asked and resolution status, or `none`.

@@ -46,6 +46,7 @@ Use this section for implementation-affecting unknowns that could not be resolve
 
 - `get_metadata({{root_node}})`
 - `get_design_context({{root_node}})`
+- Figma node snapshot: `{{figma_node_snapshot_path}}`
 - Screenshot use: not supported for current restoration audit; use node data only
 - Additional child reads:
   - {{child_read_1}}
@@ -238,6 +239,7 @@ User-provided states are required seed states, not proof that the state set is e
 | Layer | Status | Evidence |
 | --- | --- | --- |
 | Structure | {{structure_verification_status}} | {{structure_verification_evidence}} |
+| Node snapshot coverage | {{node_snapshot_coverage_status}} | {{node_snapshot_coverage_evidence}} |
 | Geometry | {{geometry_verification_status}} | {{geometry_verification_evidence}} |
 | Content and business logic | {{content_business_verification_status}} | {{content_business_verification_evidence}} |
 | Numeric implementation alignment | {{numeric_alignment_status}} | {{numeric_alignment_evidence}} |
@@ -246,6 +248,7 @@ User-provided states are required seed states, not proof that the state set is e
 ## Current Read Outcome
 
 - Boundary coverage: {{boundary_coverage}}
+- Figma snapshot coverage: {{figma_snapshot_coverage}}
 - Terminal-node coverage: {{terminal_coverage}}
 - Derived spacing coverage: {{spacing_coverage}}
 - Vertical closure: {{vertical_closure_status}}

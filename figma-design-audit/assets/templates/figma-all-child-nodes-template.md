@@ -4,6 +4,7 @@
 
 - Root node: `{{root_node}}`
 - Boundary rule: {{boundary_rule}}
+- Figma node snapshot: `{{figma_node_snapshot_path}}`
 - Last included node or stopping rule: {{stop_rule}}
 - Required total visible nodes: {{required_visible_node_count}}
 - Skipped visible nodes: {{skipped_visible_node_count}}

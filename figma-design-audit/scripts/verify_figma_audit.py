@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -72,6 +73,8 @@ LEDGER_REQUIRED_COLUMNS = [
     "Completion proof",
     "Note",
 ]
+
+BLOCKED_READ_STATUSES = {"blocked", "unreadable", "unexpanded", "unknown"}
 
 
 def fail(message: str) -> None:
@@ -248,6 +251,75 @@ def extract_ledger_rows(ledger_text: str) -> list[list[str]]:
     return rows
 
 
+def clean_cell(value: str) -> str:
+    return value.strip().strip("`").strip()
+
+
+def ledger_node_ids(ledger_text: str) -> set[str]:
+    return {clean_cell(cells[0]) for cells in extract_ledger_rows(ledger_text) if cells and clean_cell(cells[0])}
+
+
+def read_json(path: Path) -> object:
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        raise SystemExit(f"Could not read {path}: {exc}") from exc
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Could not parse JSON {path}: {exc}") from exc
+
+
+def snapshot_nodes(snapshot: object) -> list[dict[str, object]]:
+    if not isinstance(snapshot, dict):
+        return []
+    raw_nodes = snapshot.get("nodes", [])
+    if not isinstance(raw_nodes, list):
+        return []
+    return [node for node in raw_nodes if isinstance(node, dict)]
+
+
+def node_id(node: dict[str, object]) -> str:
+    value = node.get("id", node.get("node_id", ""))
+    return str(value).strip()
+
+
+def node_visible(node: dict[str, object]) -> bool:
+    if "visible" in node:
+        return bool(node.get("visible"))
+    if "visibility" in node:
+        return str(node.get("visibility", "")).strip().lower() not in {"false", "hidden", "invisible"}
+    return True
+
+
+def node_read_status(node: dict[str, object]) -> str:
+    return str(node.get("read_status", node.get("status", ""))).strip().lower()
+
+
+def validate_snapshot(snapshot_text: object, ledger_text: str) -> list[str]:
+    errors: list[str] = []
+    nodes = snapshot_nodes(snapshot_text)
+    require(bool(nodes), "Figma snapshot must contain a non-empty nodes array", errors)
+
+    expected_ids = {node_id(node) for node in nodes if node_id(node) and node_visible(node)}
+    actual_ids = ledger_node_ids(ledger_text)
+    missing_ids = sorted(expected_ids - actual_ids)
+    require(not missing_ids, "Ledger is missing visible Figma snapshot nodes: " + ", ".join(missing_ids), errors)
+
+    blocked_nodes = sorted(
+        node_id(node)
+        for node in nodes
+        if node_id(node) and node_visible(node) and node_read_status(node) in BLOCKED_READ_STATUSES
+    )
+    require(not blocked_nodes, "Figma snapshot contains unreadable visible nodes: " + ", ".join(blocked_nodes), errors)
+
+    duplicate_ids = sorted(
+        node_id(node)
+        for node in nodes
+        if node_id(node) and sum(1 for other in nodes if node_id(other) == node_id(node)) > 1
+    )
+    require(not duplicate_ids, "Figma snapshot contains duplicate node ids: " + ", ".join(sorted(set(duplicate_ids))), errors)
+    return errors
+
+
 def validate_ledger(ledger_text: str, implementation_ready: bool) -> list[str]:
     errors: list[str] = []
     header = extract_ledger_header(ledger_text)
@@ -289,14 +361,22 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Verify Figma audit contract files.")
     parser.add_argument("--readme", required=True, type=Path, help="Path to README.md audit file")
     parser.add_argument("--ledger", required=True, type=Path, help="Path to ALL_CHILD_NODES.md audit file")
+    parser.add_argument(
+        "--figma-snapshot",
+        required=True,
+        type=Path,
+        help="Path to figma-node-snapshot.json containing every in-scope visible Figma node read during traversal",
+    )
     args = parser.parse_args()
 
     readme_text = read_file(args.readme)
     ledger_text = read_file(args.ledger)
+    snapshot_text = read_json(args.figma_snapshot)
     implementation_ready = normalize_value(parse_outcome_value(readme_text, "Ready for implementation:")) in READY_VALUES
 
     errors = validate_readme(readme_text)
     errors.extend(validate_ledger(ledger_text, implementation_ready=implementation_ready))
+    errors.extend(validate_snapshot(snapshot_text, ledger_text))
 
     if errors:
         for error in errors:
