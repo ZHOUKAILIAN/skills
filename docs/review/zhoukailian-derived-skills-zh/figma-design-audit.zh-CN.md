@@ -1,0 +1,157 @@
+# figma-design-audit 中文翻译稿
+
+原始文件：`figma-design-audit/SKILL.md`
+
+说明：这是一份供审阅的中文翻译稿，不是可安装的 skill 文件。实际生效文件仍是英文 `SKILL.md`。
+
+## 元数据
+
+- `name`: `figma-design-audit`
+- `description`: 当用户提供 Figma URL、fileKey 或 node-id，并且需要在实现前完整读取 Figma 节点、分类可见图层、推导设计几何、产出审计产物时使用。
+
+## 目标
+
+产出一个完整、只读的 Figma 审计包。这个 skill 只拥有 Figma 事实：可见节点覆盖、读到 terminal depth、节点分类、几何目标、视觉规格、状态样例、业务来源问题和未解决 blocker。
+
+它不写 CSS，不改项目代码，不选择 flex/grid/absolute 等实现方式，也不做最终还原验收。
+
+## 事实来源
+
+Figma 是视觉事实来源：节点树、可见性、几何、字体、颜色、素材、视觉层级和视觉状态样例。
+
+Figma 不自动拥有业务内容、数据字段、权限、条件分支、排序、过滤、数量、文案归属或记录渲染规则。这些必须从用户说明、产品需求、既有实现、API 合约、schema、运行时数据或其他明确业务来源解决。
+
+当 Figma 视觉证据和 PRD、既有实现、API/schema 或其他业务来源冲突时，必须显式记录冲突。不能静默选择一边继续做。只要冲突影响实现或验收，且没有明确来源优先级或 owner 决策，就是 blocker。
+
+## 必要输入
+
+- Figma URL、`fileKey`、`node-id` 或明确的 Figma 边界。
+- 审计边界：组件、frame、页面、弹窗、流程步骤、变体集或状态列表。
+- 用户要求优先使用的业务来源，例如 PRD、既有组件、API 合约或 owner 文档。
+- 如果需要持久产物，需要指定或采用项目内合适的产物位置；否则内联输出相同结构的审计内容。
+
+如果边界不明确，先读可用 Figma metadata；只有多个候选边界仍然会改变范围时，才问用户。
+
+如果用户提供状态列表，把它当作必须覆盖的 seed states，而不是完整状态范围的证明。先逐个审计用户提供的状态，再主动从 Figma variants、可见替代 frame、interaction-proxy 节点、既有代码分支、产品需求、schema 和相似 UI 中发现额外状态。能确认的状态加入 manifest；只有查完可用来源后仍无法确认且影响实现或验收的状态缺口，才汇总后问用户。
+
+## 适用场景
+
+- 用户提供 Figma URL、`fileKey` 或 `node-id`。
+- 用户要求编码前先读完子节点、状态、素材、变量或规格。
+- Figma 还原任务需要先产出审计包，再进入 CSS 实现。
+- 既有 Figma 审计可能不完整，需要补 terminal-depth 覆盖或 blocker 清理。
+
+## 不适用场景
+
+- 已经有完整审计，用户问 CSS 怎么实现：使用 `css-best-practices`。
+- 用户要只读比较既有实现和 Figma：使用 `figma-restoration-review`。
+- 任务不涉及 Figma 节点数据。
+
+## 工作流
+
+1. 根据用户请求和 Figma metadata 建立审计边界。
+2. 把边界读到 terminal depth，并分类每个可见节点。
+3. 从 Figma、代码、文档、schema、运行时数据或用户说明中解决几何、状态和业务来源问题。
+4. 只有查过可用来源后仍无法解决的问题，才进入 Blocking Questions。
+5. 写审计 README、节点 ledger、Figma node snapshot，以及需要时的 manifest 或 verification artifact。
+6. 对持久产物运行 `scripts/verify_figma_audit.py --readme <README> --ledger <ALL_CHILD_NODES> --figma-snapshot <FIGMA_NODE_SNAPSHOT>`；必须带上 Figma node snapshot。
+7. 如果 gate 失败，修复具体失败项并重跑；如果无法自行解决，报告 `not ready`，不要交给 CSS 实现。
+
+## 必须产出的审计内容
+
+- 多屏、多边界、多状态或多流程步骤时，需要 restoration manifest。
+- 边界 README：范围、来源优先级、读取依据、节点分类、几何推导、垂直/水平闭环、状态矩阵、业务来源映射、阻塞问题、验证摘要和 ready 状态。
+- Source Conflict Register：当 Figma 视觉事实和 PRD、既有代码、API/schema、运行时数据或用户说明不一致时必须记录。
+- Figma node snapshot JSON：列出范围内每个实际读取到的可见节点，包括 id、parent id、name、type、visibility、read status、child count 和 child ids。
+- 完整节点 ledger：每个范围内可见节点的分类、几何、child count、展开状态、terminal proof、排除原因或 blocker 原因。
+- 当实现相关不确定性查过来源仍未解决时，需要 Blocking Questions。
+
+缺少这些产物或 verifier 不通过，审计不能交给实现。
+
+## 关键 gate
+
+### Exhaustive Node Read Gate
+
+每个范围内可见节点都必须读到 terminal depth。不要抽样重复项，不要从兄弟节点推断结构，不要停在 frame、group、component、instance、icon wrapper、slot wrapper 或 design-system shell 外层。当前流程不支持用截图补审计证据；必须依赖节点遍历。
+
+每个可见节点都必须进入 ledger，包含 node id、parent id、name、type、visibility、depth、x、y、width、height、分类、child count、展开状态、展开依据、terminal proof、排除原因或 blocker 原因。
+
+如果仍有 `unknown`、`unexpanded` 或 `blocked`，不能标记为 ready。
+
+真正证明“所有节点都读到了”的证据是 Figma node snapshot，不是 README 里的文字声明。snapshot 必须来自递归读取 Figma，不能手填、抽样、或从兄弟节点推断。每个可见节点都必须记录 `child_count` 和 Figma 读取返回的精确 `child_ids`。verifier 必须把 snapshot 里的范围内可见 node id 和 ledger 里的 node id 做集合对比，并验证 child 树从 `root_node` 闭合；缺失、重复、不可读、blocked、unknown、unexpanded、child id 缺失、parent link 不闭合或 root 不可达都会导致验证失败。
+
+### Node Classification Gate
+
+每个可见节点都要分类：
+
+- `renderable-ui`：产品代码渲染。
+- `platform-native`：宿主平台、运行时容器、浏览器、操作系统或小程序 shell 提供。
+- `interaction-proxy`：设计中表达行为、过渡、手势、选中、展开或临时 overlay 的静态图层。
+- `annotation-demo-only`：注释、箭头、预览 chrome、手机壳、演示壳层。
+
+审计必须回答：这个节点是否在设计边界中可见；它应由产品代码渲染、交给平台、转成行为/状态，还是有理由排除。
+
+### Geometry Audit Gate
+
+Figma 坐标是设计测量证据，不是 CSS 实现指令。用 `x`、`y`、`width`、`height` 推导 parent inset、sibling gap、尺寸、垂直/水平闭环、字体、颜色、圆角、阴影、素材和状态目标值。
+
+每个影响实现的间距或尺寸，都要记录容器、参考节点、公式和结果。
+
+主要容器必须做闭环：
+
+- 垂直：`top inset + internal gaps + content heights + bottom inset = container height`
+- 水平：`left inset + internal gaps + content widths + right inset = container width`
+
+闭环不通过时，继续读取或标 blocker；不要在这个 skill 里决定 CSS primitive。
+
+### Resolve-Before-Asking Gate
+
+不要一遇到 unknown 就问用户。先尝试从 Figma 节点、组件/实例展开、变量、样式、metadata、既有实现、props、store、hooks、API client、schema、fixtures、需求、技术设计、任务文本、相似 UI、运行时数据中解决。
+
+关键规则：查完来源后，只要仍存在影响实现或验收的不确定性，就必须 blocker，禁止猜测。不能用推断、惯例、可能意图、视觉相似或“应该差不多”继续；事实必须来自 Figma 数据、代码、文档、schema、运行时数据或用户答案。
+
+满足以下两个条件时，必须问用户：
+
+1. unknown 影响实现或验收。
+2. available sources 无法解决。
+
+问题要集中成一批问，不要一个一个打断。用户回答后更新审计，再重新跑 gate。
+
+### Source Conflict Gate
+
+Figma 拥有视觉事实。PRD、代码、API/schema、运行时数据和用户说明可能拥有产品行为和业务事实。来源之间不一致时，审计必须把冲突暴露出来，不能自行按偏好解决。
+
+每个冲突都要记录：
+
+- Figma 证据：node id、值、视觉状态或几何。
+- 业务证据：PRD 行、代码路径、API/schema 字段、运行时值或用户说明。
+- 冲突影响：纯视觉、行为、数据绑定、条件展示、文案归属、验收或实现目标。
+- 已知的决策 owner。
+- 状态：resolved、non-blocking 或 blocking。
+
+如果冲突影响实现或验收，且没有明确来源优先级或 owner 决策，就必须标为 blocking。冲突解决或明确接受为 non-blocking 前，不能交给 CSS 实现。
+
+### State Coverage Gate
+
+状态范围有两层：
+
+1. 用户提供的 seed states：用户明确说过的每个状态都必须进入 restoration manifest 和 state matrix。
+2. 审计发现的状态：从 Figma、代码、产品文档、schema 或相似流程发现的每个实现相关状态，都必须加入、用证据标记 not applicable，或转成成组 blocking question。
+
+不要假设用户给的状态列表就是完整列表。也不要假设 Figma 里的视觉状态一定是业务拥有的状态。每个状态都要记录 Figma node 或来源、视觉差异、业务触发/source、实现目标，以及代码是否必须变更。
+
+如果发现的状态无法从现有来源确认，在审计 pass 后合并成一批问题问用户。只要 required state 缺失、被静默跳过或仍是 unknown，审计就不能 ready。
+
+## 截图边界
+
+当前 Figma 还原流程不支持截图审计或截图验收。不要为了 Figma audit readiness 请求或要求截图。
+
+强制证据是 Figma 节点数据、派生目标值，以及后续可与实现对比的数值测量。不要把“看起来接近”当作审计结果。
+
+## 完成信号
+
+审计完成必须满足：边界和来源优先级明确；Figma node snapshot 覆盖所有范围内可见节点；所有范围内可见节点都进入 ledger；无 `unknown`、`unexpanded` 或未解决 `blocked`；shell-capable 节点有展开依据和 terminal proof；所有可见节点有分类和处理决策；几何推导有参考节点和公式；主要容器垂直/水平闭环通过；状态矩阵覆盖范围内状态；业务内容和分支有来源或已记录用户答案；Blocking Questions 为空或已回答；持久产物通过 `scripts/verify_figma_audit.py`。
+
+## 证明包
+
+报告完成或 `not ready` 时，需要说明：产物路径或内联章节、边界数、可见节点数、terminal/expanded/excluded/blocked 计数、Figma node snapshot 路径和 snapshot-vs-ledger 覆盖结果、读取过的 Figma 和业务来源、每个主要容器的几何闭环状态、Blocking Questions 状态、verifier 命令和结果。

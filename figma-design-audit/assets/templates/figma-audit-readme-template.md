@@ -7,17 +7,56 @@
 - Source link: `{{figma_url}}`
 - Purpose: {{purpose}}
 - Requested boundary: {{boundary_rule}}
+- User-provided seed states: {{seed_states}}
+- Discovered states added by audit: {{discovered_states}}
 - Included states: {{included_states}}
 - Excluded states or out-of-scope areas: {{excluded_scope}}
 - Business source(s): {{business_sources}}
 - Implementation target(s): {{implementation_targets}}
 - Figma sample-content rule: {{figma_sample_rule}}
 
+## Restoration Manifest
+
+Use this section when the task includes more than one node, screen, state, or flow step. Every in-scope item must have a row before implementation starts.
+
+| Boundary / state | Figma node | Business source | Implementation target | Required interaction/state | Gate status |
+| --- | --- | --- | --- | --- | --- |
+| {{manifest_item_1}} | `{{manifest_node_1}}` | {{manifest_business_source_1}} | {{manifest_target_1}} | {{manifest_state_1}} | {{manifest_gate_1}} |
+| {{manifest_item_2}} | `{{manifest_node_2}}` | {{manifest_business_source_2}} | {{manifest_target_2}} | {{manifest_state_2}} | {{manifest_gate_2}} |
+
+## Source Priority
+
+| Source | Owns | Notes / conflict decision |
+| --- | --- | --- |
+| Figma | Visual geometry, typography, colors, assets, visual state examples | {{figma_source_notes}} |
+| PRD / task text | Product behavior, acceptance, validation, copy ownership | {{prd_source_notes}} |
+| API / schema / runtime data | Field names, error codes, data shape, live integration | {{api_source_notes}} |
+| Existing analogous code | Reusable interaction pattern, data flow, error handling | {{code_source_notes}} |
+
+## Source Conflict Register
+
+When Figma visual evidence conflicts with PRD, existing implementation, API/schema, runtime data, or user instructions, record it here. Unresolved conflicts that affect implementation or acceptance are blockers.
+
+| Conflict | Figma evidence | Business / implementation evidence | Impact | Decision owner | Status |
+| --- | --- | --- | --- | --- | --- |
+| {{source_conflict_1}} | {{figma_conflict_evidence_1}} | {{business_conflict_evidence_1}} | {{conflict_impact_1}} | {{conflict_owner_1}} | {{conflict_status_1}} |
+| {{source_conflict_2}} | {{figma_conflict_evidence_2}} | {{business_conflict_evidence_2}} | {{conflict_impact_2}} | {{conflict_owner_2}} | {{conflict_status_2}} |
+
+## Blocking Questions
+
+Use this section for implementation-affecting unknowns that could not be resolved from available sources. Do not ask one by one during the audit; group them and ask after the first complete pass.
+
+| Question | Why it matters | Sources checked | Decision needed from user | Status |
+| --- | --- | --- | --- | --- |
+| {{blocking_question_1}} | {{blocking_why_1}} | {{blocking_sources_1}} | {{blocking_decision_1}} | {{blocking_status_1}} |
+| {{blocking_question_2}} | {{blocking_why_2}} | {{blocking_sources_2}} | {{blocking_decision_2}} | {{blocking_status_2}} |
+
 ## Read Basis
 
 - `get_metadata({{root_node}})`
 - `get_design_context({{root_node}})`
-- `get_screenshot({{root_node}})`
+- Figma node snapshot: `{{figma_node_snapshot_path}}`
+- Screenshot use: not supported for current restoration audit; use node data only
 - Additional child reads:
   - {{child_read_1}}
   - {{child_read_2}}
@@ -95,12 +134,26 @@ flowchart TD
 | Closure formula | `{{closure_formula}}` |
 | Closure result | `{{closure_result}}` |
 
-## CSS Strategy
+## Horizontal Closure Check
 
-| Container or relationship | Geometry evidence | CSS primitive | `css-best-practices` decision |
+| Item | Value |
+| --- | --- |
+| Container width | `{{horizontal_closure_container_width}}` |
+| Left inset | `{{horizontal_closure_left_inset}}` |
+| Content widths total | `{{horizontal_closure_content_total}}` |
+| Internal horizontal gaps total | `{{horizontal_closure_gap_total}}` |
+| Right inset | `{{horizontal_closure_right_inset}}` |
+| Closure formula | `{{horizontal_closure_formula}}` |
+| Closure result | `{{horizontal_closure_result}}` |
+
+## CSS Handoff Values
+
+This section records Figma measurement evidence only. CSS primitives and implementation strategy are owned by `css-best-practices`.
+
+| Container or relationship | Geometry evidence | Target value | Implementation note |
 | --- | --- | --- | --- |
-| {{layout_container_1}} | {{layout_evidence_1}} | {{layout_primitive_1}} | {{positioning_decision_1}} |
-| {{layout_container_2}} | {{layout_evidence_2}} | {{layout_primitive_2}} | {{positioning_decision_2}} |
+| {{layout_container_1}} | {{layout_evidence_1}} | {{target_value_1}} | {{implementation_note_1}} |
+| {{layout_container_2}} | {{layout_evidence_2}} | {{target_value_2}} | {{implementation_note_2}} |
 
 ## Shell vs Real Visible Bounds
 
@@ -118,11 +171,36 @@ flowchart TD
 
 ## State Matrix
 
+User-provided states are required seed states, not proof that the state set is exhaustive. This matrix must include every user-provided state plus every implementation-affecting state discovered from Figma, code, product docs, schema, or analogous UI.
+
 | State | Node | Figma visual evidence | Business trigger/source | Must change in code |
 | --- | --- | --- | --- | --- |
 | {{state_1}} | `{{state_node_1}}` | {{state_diff_1}} | {{business_trigger_1}} | {{must_change_1}} |
 | {{state_2}} | `{{state_node_2}}` | {{state_diff_2}} | {{business_trigger_2}} | {{must_change_2}} |
 | {{state_3}} | `{{state_node_3}}` | {{state_diff_3}} | {{business_trigger_3}} | {{must_change_3}} |
+
+## State Discovery Ledger
+
+| Candidate state | Source | Decision | Evidence | Blocking question if unresolved |
+| --- | --- | --- | --- | --- |
+| {{candidate_state_1}} | {{candidate_state_source_1}} | {{candidate_state_decision_1}} | {{candidate_state_evidence_1}} | {{candidate_state_blocker_1}} |
+| {{candidate_state_2}} | {{candidate_state_source_2}} | {{candidate_state_decision_2}} | {{candidate_state_evidence_2}} | {{candidate_state_blocker_2}} |
+
+### Common State Checklist
+
+| State | Applicable | Node / source | Reason if not applicable |
+| --- | --- | --- | --- |
+| Logged out | {{logged_out_applicable}} | {{logged_out_source}} | {{logged_out_reason}} |
+| First logged-in screen | {{first_screen_applicable}} | {{first_screen_source}} | {{first_screen_reason}} |
+| Loading | {{loading_applicable}} | {{loading_source}} | {{loading_reason}} |
+| Empty | {{empty_applicable}} | {{empty_source}} | {{empty_reason}} |
+| Network error / timeout | {{error_applicable}} | {{error_source}} | {{error_reason}} |
+| Permission / no access | {{permission_applicable}} | {{permission_source}} | {{permission_reason}} |
+| Pagination / bottom loading | {{pagination_applicable}} | {{pagination_source}} | {{pagination_reason}} |
+| Pull-to-refresh | {{refresh_applicable}} | {{refresh_source}} | {{refresh_reason}} |
+| Long-list scroll | {{scroll_applicable}} | {{scroll_source}} | {{scroll_reason}} |
+| Selected / disabled | {{selection_applicable}} | {{selection_source}} | {{selection_reason}} |
+| Current-user / abnormal / warning | {{warning_applicable}} | {{warning_source}} | {{warning_reason}} |
 
 ## Business Logic Source Map
 
@@ -138,6 +216,13 @@ flowchart TD
 | --- | --- | --- | --- |
 | {{asset_1}} | `{{asset_node_1}}` | {{asset_type_1}} | {{asset_note_1}} |
 | {{asset_2}} | `{{asset_node_2}}` | {{asset_type_2}} | {{asset_note_2}} |
+
+## Shared Component Impact
+
+| Shared component | Consumers checked | Variant / scope decision | Regression verification |
+| --- | --- | --- | --- |
+| {{shared_component_1}} | {{shared_consumers_1}} | {{shared_scope_1}} | {{shared_verification_1}} |
+| {{shared_component_2}} | {{shared_consumers_2}} | {{shared_scope_2}} | {{shared_verification_2}} |
 
 ## Detailed Read
 
@@ -163,21 +248,28 @@ flowchart TD
 | Layer | Status | Evidence |
 | --- | --- | --- |
 | Structure | {{structure_verification_status}} | {{structure_verification_evidence}} |
+| Node snapshot coverage | {{node_snapshot_coverage_status}} | {{node_snapshot_coverage_evidence}} |
 | Geometry | {{geometry_verification_status}} | {{geometry_verification_evidence}} |
 | Content and business logic | {{content_business_verification_status}} | {{content_business_verification_evidence}} |
-| Visual diff | {{visual_diff_status}} | {{visual_diff_evidence}} |
+| Numeric implementation alignment | {{numeric_alignment_status}} | {{numeric_alignment_evidence}} |
 | State coverage | {{state_verification_status}} | {{state_verification_evidence}} |
 
 ## Current Read Outcome
 
 - Boundary coverage: {{boundary_coverage}}
+- Figma snapshot coverage: {{figma_snapshot_coverage}}
 - Terminal-node coverage: {{terminal_coverage}}
 - Derived spacing coverage: {{spacing_coverage}}
 - Vertical closure: {{vertical_closure_status}}
+- Horizontal closure: {{horizontal_closure_status}}
 - State-matrix coverage: {{state_matrix_coverage}}
 - Business logic source coverage: {{business_logic_source_coverage}}
+- Restoration manifest coverage: {{manifest_coverage}}
+- Source conflicts: {{source_conflicts_status}}
+- Shared component impact review: {{shared_component_impact_status}}
 - Non-renderable review: {{non_renderable_review}}
 - Critical unknowns: {{critical_unknowns}}
-- CSS strategy: {{layout_strategy_status}}
+- CSS handoff values: {{css_handoff_values_status}}
 - Remaining uncertainty: {{remaining_uncertainty}}
+- Blocking questions: {{blocking_questions_status}}
 - Ready for implementation: {{implementation_ready}}

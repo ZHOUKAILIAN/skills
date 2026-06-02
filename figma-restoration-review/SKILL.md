@@ -10,7 +10,7 @@ Given a Figma design reference and an existing implementation, systematically co
 
 ## Goal
 
-Identify every gap between the Figma source of truth and the current implementation, report each gap with measurable evidence (expected vs actual), and rank them so the developer knows what to fix first. "Looks close" is not a review result — every claim must be backed by node data or measurement.
+Identify every gap between the Figma source of truth and the current implementation, report each gap with measurable evidence (expected vs actual), and rank them so the developer knows what to fix first. "Looks close" is not a review result — every claim must be backed by Figma node data, derived target values, or implementation measurements.
 
 ## When To Use
 
@@ -21,12 +21,12 @@ Identify every gap between the Figma source of truth and the current implementat
 
 ## When NOT To Use
 
-- The user wants to **implement** or **build** UI from Figma — use the `figma-1to1-ui-restoration` skill instead
+- The user wants to **implement** or **build** UI from Figma — use `figma-design-audit` first, then implement with `css-best-practices` once the audit is ready.
 - The user wants code changes or fixes applied — this skill only reports deviations
 
-## Relationship to `figma-1to1-ui-restoration`
+## Relationship to `figma-design-audit`
 
-The `figma-1to1-ui-restoration` skill governs development — it produces audit artifacts, derives geometry, and implements code. This skill governs **acceptance review** — it reads the same Figma data and compares it against what already exists. The two skills share the same fidelity standard and tolerance thresholds but serve different stages of the workflow.
+`figma-design-audit` governs Figma fact gathering — it reads the boundary, classifies nodes, derives geometry, and records blocking questions. This skill governs **acceptance review** — it reads the same Figma data and compares it against what already exists. CSS implementation decisions belong to `css-best-practices`.
 
 ## Constraints
 
@@ -34,9 +34,13 @@ The `figma-1to1-ui-restoration` skill governs development — it produces audit 
 
 If Figma MCP is unavailable or unauthenticated, stop immediately. Tell the user to configure it. Do not fabricate specs from screenshots, memory, or guesses.
 
+### Screenshot-based acceptance is out of scope
+
+The current restoration workflow does not use screenshots, overlay diff, or visual-diff images as required acceptance evidence. Review against Figma node values and implementation measurements. If the implementation cannot be measured from code, runtime DOM, computed styles, or platform output, record that as unevaluable instead of substituting screenshots.
+
 ### Read-only — never modify code
 
-This skill produces a deviation checklist only. Do not edit, create, or delete any source files. If the user wants fixes applied, tell them to use `figma-1to1-ui-restoration` or apply the fixes manually.
+This skill produces a deviation checklist only. Do not edit, create, or delete any source files. If the user wants fixes applied, return to implementation mode and use `css-best-practices` with the completed Figma audit.
 
 ### Read the implementation before reviewing
 
@@ -44,7 +48,7 @@ Read the actual source files that render the UI under review. Do not rely on ass
 
 ### Derive Figma values from geometry — read ALL nodes first, then calculate
 
-Follow the same geometry-derivation approach as `figma-1to1-ui-restoration`: derive spacing from raw `x`, `y`, `width`, `height` of parent and child nodes. Do not assume spacing from visual appearance alone.
+Follow the same geometry-derivation approach as `figma-design-audit`: derive spacing from raw `x`, `y`, `width`, `height` of parent and child nodes. Do not assume spacing from visual appearance alone.
 
 **Figma node trees are often asymmetric.** Child nodes under the same parent may have different depths, different sub-structures, or inconsistent grouping. Do not assume sibling nodes share the same structure. The correct process is:
 
@@ -149,6 +153,8 @@ Present findings as a structured list. Each deviation entry must include:
 
 7. **State unknowns explicitly** — If any node could not be evaluated (e.g., a state that requires runtime interaction to verify), record it as an unresolved item rather than silently skipping it.
 
+8. **Report numeric evidence** — For geometry and style claims, include the Figma-derived expected value, actual implementation value, measurement source, and tolerance result.
+
 ## Completion Signal
 
 The review is complete only when ALL of the following are true:
@@ -160,5 +166,6 @@ The review is complete only when ALL of the following are true:
 5. Every deviation is recorded with severity, dimension, expected vs actual, and location.
 6. No in-scope node or state has been silently skipped.
 7. A summary count of deviations by severity is provided.
+8. Geometry and style conclusions use numeric or source-backed evidence, not screenshot-only judgment.
 
 If any item is missing, say so explicitly — do not close the review with "mostly matches" or "looks close".

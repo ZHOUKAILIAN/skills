@@ -1,0 +1,4 @@
+{
+  "name": "figma-design-audit",
+  "description": "Use when a user provides a Figma URL, fileKey, or node-id and you need to exhaustively read Figma nodes, classify visible layers, derive design geometry, and produce audit artifacts before implementation."
+}

@@ -1,0 +1,23 @@
+{
+  "name": "zhoukailian-repeated-workflows",
+  "description": "Use when Zhou Kailian asks for recurring CrewPals, Figma, Feishu/Lark, agent-team, debugging, testing, PR, data consistency, or skill-writing work that should be routed through known local workflows.",
+  "sub_skills": [
+    "zhoukailian-development-preferences",
+    "ai-doc-driven-dev",
+    "figma-design-audit",
+    "figma-restoration-review",
+    "css-best-practices",
+    "cst",
+    "crewpals-sports-metrics-investigation",
+    "agent-team-traceability",
+    "lark-doc",
+    "lark-base",
+    "lark-sheets",
+    "e2e-coverage-guard",
+    "skill-lifecycle",
+    "skill-standard",
+    "five-layer-classifier",
+    "code-reviewer",
+    "receiving-code-review"
+  ]
+}

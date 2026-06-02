@@ -1,5 +1,7 @@
 {
   "name": "figma-restoration-review",
   "description": "Use when a user provides a Figma URL, fileKey, or node-id and wants a read-only fidelity review of an existing UI implementation rather than code changes.",
-  "sub_skills": []
+  "sub_skills": [
+    "figma-design-audit"
+  ]
 }
