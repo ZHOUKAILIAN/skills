@@ -1,0 +1,4 @@
+{
+  "name": "backend-service-verification",
+  "description": "Use when verifying a backend requirement or service-side change from requirements, technical plans, and QA/frontend/full-stack test cases with real service evidence."
+}
