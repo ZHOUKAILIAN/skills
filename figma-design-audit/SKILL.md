@@ -17,6 +17,8 @@ Figma is the source of truth for visual facts: node tree, visibility, geometry, 
 
 Figma is not automatically the source of truth for business content, data fields, permissions, conditional branches, sorting, filtering, counts, copy ownership, or which records should render. Resolve those from user instructions, product requirements, existing implementation, API contracts, schema, runtime data, or another explicit business source.
 
+When Figma visual evidence conflicts with PRD, existing implementation, API/schema, or another business source, record the conflict explicitly. Do not silently choose one source and continue. Unresolved conflicts that affect implementation or acceptance are blockers and require user or owner decision.
+
 Wrong: hardcode sample names, counts, tabs, or selected rows because they are visible in Figma.
 Right: record the sample as a visual example, resolve the business source, and ask the user only if available sources cannot answer it.
 
@@ -54,7 +56,7 @@ The current Figma restoration workflow does not support screenshot-based audit o
 
 - `assets/templates/figma-audit-readme-template.md`: boundary audit report template.
 - `assets/templates/figma-all-child-nodes-template.md`: exhaustive node ledger template.
-- `assets/templates/figma-node-snapshot-template.json`: structured Figma node snapshot template used to prove every visible node was read.
+- `assets/templates/figma-node-snapshot-template.json`: structured Figma node snapshot template used to prove every visible node was recursively read to a closed child tree.
 - `assets/templates/figma-verification-template.md`: audit-gate verification template for proving the Figma audit package is handoff-ready.
 - `scripts/verify_figma_audit.py`: checks the minimum audit contract for the README, node ledger, and Figma node snapshot.
 
@@ -85,6 +87,7 @@ Use the templates when the task needs durable audit artifacts. Use the verifier 
 
 - Mechanical check: `scripts/verify_figma_audit.py --readme <README> --ledger <ALL_CHILD_NODES> --figma-snapshot <FIGMA_NODE_SNAPSHOT>`
 - Snapshot check: the verifier compares every in-scope visible node id in `figma-node-snapshot.json` against the ledger. Missing, duplicate, unreadable, blocked, unknown, or unexpanded visible nodes fail verification.
+- Tree closure check: every visible snapshot node must include `child_count` and `child_ids`; every `child_id` must exist in the snapshot; child parent links must point back to the parent; all visible nodes must be reachable from `root_node` through `child_ids`.
 - Manual check: confirm the README includes source priority, blocking questions, geometry closure, state matrix, and readiness status; confirm the ledger includes every in-scope visible node and its terminal proof.
 - Failure handling: if verification fails, repair the specific gap and rerun; if the gap cannot be resolved from available sources, report `not ready` with the failed gate and evidence.
 
@@ -94,7 +97,8 @@ Before handoff to CSS implementation, produce:
 
 - A restoration manifest when the task includes more than one screen, component boundary, state, variant, or flow step.
 - A boundary README with scope, source priority, read basis, node classification, derived geometry, vertical and horizontal design closure, state matrix, business-source map, blocking questions, verification summary, and readiness status.
-- A Figma node snapshot JSON listing every in-scope visible node read from Figma, including id, parent id, name, type, visibility, read status, and child ids.
+- A source conflict register when Figma visual facts and PRD, existing code, API/schema, runtime data, or user instructions disagree.
+- A Figma node snapshot JSON listing every in-scope visible node read from Figma, including id, parent id, name, type, visibility, read status, child count, and child ids.
 - A complete node ledger listing every in-scope visible node with classification, geometry, child count, expansion status, terminal proof, exclusion reason, or blocker reason.
 - A blocking questions list when implementation-affecting uncertainty remains after available source checks.
 
@@ -123,7 +127,7 @@ Allowed ledger statuses:
 
 If any in-scope visible node remains `unknown`, `unexpanded`, or `blocked`, the audit cannot be marked ready for CSS implementation.
 
-The node-read proof is the Figma node snapshot, not the README prose. The snapshot must contain every in-scope visible node discovered during traversal. `scripts/verify_figma_audit.py` must compare that snapshot against the node ledger before the audit can claim terminal coverage.
+The node-read proof is the Figma node snapshot, not the README prose. The snapshot must be produced from recursive Figma reads, not manually invented, sampled, or inferred from sibling patterns. The snapshot must contain every in-scope visible node discovered during traversal, each node's `child_count`, and the exact `child_ids` returned by the read. `scripts/verify_figma_audit.py` must prove snapshot-vs-ledger coverage and snapshot child-tree closure before the audit can claim terminal coverage.
 
 ## Node Classification Gate
 
@@ -166,6 +170,8 @@ If closure does not pass, keep reading or mark the blocker. Do not decide CSS pr
 
 Do not ask the user about an unknown until you have tried to resolve it from available sources.
 
+Critical rule: after available sources have been checked, any remaining uncertainty that affects implementation or acceptance is a blocker. Guessing is prohibited. Do not continue from inference, convention, likely intent, visual similarity, or "probably correct" assumptions when the fact cannot be proven by Figma data, code, docs, schema, runtime data, or a user answer.
+
 Before adding an item to `Blocking Questions`, check whether it can be resolved from:
 
 - Figma node tree, component/instance expansion, variables, styles, and metadata.
@@ -174,11 +180,10 @@ Before adding an item to `Blocking Questions`, check whether it can be resolved 
 - Existing analogous UI or interaction flow named by the user.
 - Runtime or test data when available and in scope.
 
-Only ask the user when all are true:
+Ask the user when both are true:
 
 1. The unknown affects implementation or acceptance.
 2. It cannot be resolved from available sources.
-3. Continuing would require guessing.
 
 Record each blocking question with:
 
@@ -190,6 +195,20 @@ Record each blocking question with:
 Do not interrupt the user one item at a time. During audit, collect blocking questions. After the first complete audit pass, ask the user one grouped batch of concise questions. After the user answers, update the audit artifacts and rerun the audit gate. If answers reveal new blockers, ask one follow-up batch.
 
 The audit cannot hand off to CSS implementation while any blocking question remains unresolved.
+
+## Source Conflict Gate
+
+Figma owns visual facts. PRD, code, API/schema, runtime data, and user instructions may own product behavior and business facts. When those sources disagree, the audit must expose the disagreement instead of resolving it by preference.
+
+Record each conflict with:
+
+- Figma evidence: node id, value, visual state, or geometry.
+- Business evidence: PRD line, code path, API/schema field, runtime value, or user instruction.
+- Conflict impact: visual only, behavior, data binding, condition, copy ownership, acceptance, or implementation target.
+- Proposed decision owner when known.
+- Status: resolved, non-blocking, or blocking.
+
+If a conflict affects implementation or acceptance and no explicit source priority or owner decision resolves it, mark it as blocking. Do not hand off to CSS implementation until the conflict is resolved or explicitly accepted as non-blocking.
 
 ## State Coverage Gate
 

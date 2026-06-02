@@ -33,6 +33,15 @@ Use this section when the task includes more than one node, screen, state, or fl
 | API / schema / runtime data | Field names, error codes, data shape, live integration | {{api_source_notes}} |
 | Existing analogous code | Reusable interaction pattern, data flow, error handling | {{code_source_notes}} |
 
+## Source Conflict Register
+
+When Figma visual evidence conflicts with PRD, existing implementation, API/schema, runtime data, or user instructions, record it here. Unresolved conflicts that affect implementation or acceptance are blockers.
+
+| Conflict | Figma evidence | Business / implementation evidence | Impact | Decision owner | Status |
+| --- | --- | --- | --- | --- | --- |
+| {{source_conflict_1}} | {{figma_conflict_evidence_1}} | {{business_conflict_evidence_1}} | {{conflict_impact_1}} | {{conflict_owner_1}} | {{conflict_status_1}} |
+| {{source_conflict_2}} | {{figma_conflict_evidence_2}} | {{business_conflict_evidence_2}} | {{conflict_impact_2}} | {{conflict_owner_2}} | {{conflict_status_2}} |
+
 ## Blocking Questions
 
 Use this section for implementation-affecting unknowns that could not be resolved from available sources. Do not ask one by one during the audit; group them and ask after the first complete pass.
@@ -256,6 +265,7 @@ User-provided states are required seed states, not proof that the state set is e
 - State-matrix coverage: {{state_matrix_coverage}}
 - Business logic source coverage: {{business_logic_source_coverage}}
 - Restoration manifest coverage: {{manifest_coverage}}
+- Source conflicts: {{source_conflicts_status}}
 - Shared component impact review: {{shared_component_impact_status}}
 - Non-renderable review: {{non_renderable_review}}
 - Critical unknowns: {{critical_unknowns}}

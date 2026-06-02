@@ -10,6 +10,7 @@
       "type": "{{type_1}}",
       "visible": true,
       "read_status": "read",
+      "child_count": 2,
       "child_ids": ["{{node_2}}", "{{node_3}}"]
     },
     {
@@ -19,6 +20,7 @@
       "type": "{{type_2}}",
       "visible": true,
       "read_status": "read",
+      "child_count": 0,
       "child_ids": []
     },
     {
@@ -28,6 +30,7 @@
       "type": "{{type_3}}",
       "visible": true,
       "read_status": "read",
+      "child_count": 0,
       "child_ids": []
     }
   ]

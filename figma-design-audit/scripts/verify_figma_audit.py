@@ -13,6 +13,7 @@ README_REQUIRED_HEADINGS = [
     "## Boundary and Scope",
     "## Restoration Manifest",
     "## Source Priority",
+    "## Source Conflict Register",
     "## Blocking Questions",
     "## Node Classification and Handling",
     "## Derived Spacing",
@@ -38,6 +39,7 @@ README_REQUIRED_OUTCOME_KEYS = [
     "State-matrix coverage:",
     "Business logic source coverage:",
     "Restoration manifest coverage:",
+    "Source conflicts:",
     "Shared component impact review:",
     "Non-renderable review:",
     "Critical unknowns:",
@@ -74,6 +76,7 @@ LEDGER_REQUIRED_COLUMNS = [
     "Note",
 ]
 
+READ_STATUSES = {"read"}
 BLOCKED_READ_STATUSES = {"blocked", "unreadable", "unexpanded", "unknown"}
 
 
@@ -125,6 +128,7 @@ def validate_readme(readme_text: str) -> list[str]:
     state_coverage = parse_outcome_value(readme_text, "State-matrix coverage:")
     business_logic_source_coverage = parse_outcome_value(readme_text, "Business logic source coverage:")
     manifest_coverage = parse_outcome_value(readme_text, "Restoration manifest coverage:")
+    source_conflicts = parse_outcome_value(readme_text, "Source conflicts:")
     shared_component_impact = parse_outcome_value(readme_text, "Shared component impact review:")
     non_renderable_review = parse_outcome_value(readme_text, "Non-renderable review:")
     critical_unknowns = parse_outcome_value(readme_text, "Critical unknowns:")
@@ -137,6 +141,7 @@ def validate_readme(readme_text: str) -> list[str]:
     require(state_coverage is not None, "README is missing state-matrix coverage value", errors)
     require(business_logic_source_coverage is not None, "README is missing business logic source coverage value", errors)
     require(manifest_coverage is not None, "README is missing restoration manifest coverage value", errors)
+    require(source_conflicts is not None, "README is missing source conflicts value", errors)
     require(shared_component_impact is not None, "README is missing shared component impact review value", errors)
     require(non_renderable_review is not None, "README is missing non-renderable review value", errors)
     require(critical_unknowns is not None, "README is missing critical unknowns value", errors)
@@ -175,6 +180,11 @@ def validate_readme(readme_text: str) -> list[str]:
         require(
             manifest_coverage is not None and manifest_coverage.lower() in {"100%", "yes", "complete", "single boundary", "all mapped"},
             "README cannot mark implementation ready unless restoration manifest coverage is complete or single-boundary",
+            errors,
+        )
+        require(
+            source_conflicts is not None and normalize_value(source_conflicts) in CLEAR_OR_NON_BLOCKING_VALUES,
+            "README cannot mark implementation ready unless Figma, PRD, code, and business-source conflicts are resolved or explicitly non-blocking",
             errors,
         )
         require(
@@ -217,6 +227,7 @@ def validate_readme(readme_text: str) -> list[str]:
             "state coverage": state_coverage,
             "business logic source coverage": business_logic_source_coverage,
             "manifest coverage": manifest_coverage,
+            "source conflicts": source_conflicts,
             "shared component impact": shared_component_impact,
             "non-renderable review": non_renderable_review,
             "critical unknowns": critical_unknowns,
@@ -294,11 +305,61 @@ def node_read_status(node: dict[str, object]) -> str:
     return str(node.get("read_status", node.get("status", ""))).strip().lower()
 
 
+def node_parent_id(node: dict[str, object]) -> str:
+    return str(node.get("parent_id", "")).strip()
+
+
+def node_child_ids(node: dict[str, object]) -> list[str] | None:
+    value = node.get("child_ids")
+    if not isinstance(value, list):
+        return None
+    return [str(item).strip() for item in value if str(item).strip()]
+
+
+def node_child_count(node: dict[str, object]) -> int | None:
+    value = node.get("child_count")
+    if isinstance(value, int):
+        return value
+    if isinstance(value, str) and value.strip().isdigit():
+        return int(value.strip())
+    return None
+
+
+def root_node_id(snapshot: object, nodes: list[dict[str, object]]) -> str:
+    if isinstance(snapshot, dict):
+        root = str(snapshot.get("root_node", "")).strip()
+        if root:
+            return root
+    for node in nodes:
+        if not node_parent_id(node):
+            return node_id(node)
+    return ""
+
+
+def reachable_node_ids(*, root_id: str, by_id: dict[str, dict[str, object]]) -> set[str]:
+    if root_id not in by_id:
+        return set()
+    visited: set[str] = set()
+    stack = [root_id]
+    while stack:
+        current_id = stack.pop()
+        if current_id in visited:
+            continue
+        visited.add(current_id)
+        node = by_id.get(current_id)
+        if node is None:
+            continue
+        child_ids = node_child_ids(node) or []
+        stack.extend(child_id for child_id in child_ids if child_id in by_id and child_id not in visited)
+    return visited
+
+
 def validate_snapshot(snapshot_text: object, ledger_text: str) -> list[str]:
     errors: list[str] = []
     nodes = snapshot_nodes(snapshot_text)
     require(bool(nodes), "Figma snapshot must contain a non-empty nodes array", errors)
 
+    by_id = {node_id(node): node for node in nodes if node_id(node)}
     expected_ids = {node_id(node) for node in nodes if node_id(node) and node_visible(node)}
     actual_ids = ledger_node_ids(ledger_text)
     missing_ids = sorted(expected_ids - actual_ids)
@@ -311,12 +372,62 @@ def validate_snapshot(snapshot_text: object, ledger_text: str) -> list[str]:
     )
     require(not blocked_nodes, "Figma snapshot contains unreadable visible nodes: " + ", ".join(blocked_nodes), errors)
 
+    non_read_nodes = sorted(
+        node_id(node)
+        for node in nodes
+        if node_id(node) and node_visible(node) and node_read_status(node) not in READ_STATUSES
+    )
+    require(not non_read_nodes, "Figma snapshot visible nodes must have read_status=read: " + ", ".join(non_read_nodes), errors)
+
     duplicate_ids = sorted(
         node_id(node)
         for node in nodes
         if node_id(node) and sum(1 for other in nodes if node_id(other) == node_id(node)) > 1
     )
     require(not duplicate_ids, "Figma snapshot contains duplicate node ids: " + ", ".join(sorted(set(duplicate_ids))), errors)
+
+    for node in nodes:
+        current_id = node_id(node)
+        if not current_id or not node_visible(node):
+            continue
+        child_ids = node_child_ids(node)
+        child_count = node_child_count(node)
+        require(child_ids is not None, f"Figma snapshot node {current_id} must include child_ids", errors)
+        require(child_count is not None, f"Figma snapshot node {current_id} must include child_count", errors)
+        if child_ids is None or child_count is None:
+            continue
+        require(
+            child_count == len(child_ids),
+            f"Figma snapshot node {current_id} child_count does not match child_ids length",
+            errors,
+        )
+        missing_children = sorted(child_id for child_id in child_ids if child_id not in by_id)
+        require(
+            not missing_children,
+            f"Figma snapshot node {current_id} child_ids missing from snapshot: " + ", ".join(missing_children),
+            errors,
+        )
+        for child_id in child_ids:
+            child = by_id.get(child_id)
+            if child is None:
+                continue
+            require(
+                node_parent_id(child) == current_id,
+                f"Figma snapshot child {child_id} parent_id does not point back to {current_id}",
+                errors,
+            )
+
+    root_id = root_node_id(snapshot_text, nodes)
+    require(bool(root_id), "Figma snapshot must include root_node or one parentless root node", errors)
+    require(root_id in by_id, f"Figma snapshot root_node is not present in nodes: {root_id}", errors)
+    reachable_ids = reachable_node_ids(root_id=root_id, by_id=by_id)
+    unreachable_visible = sorted(expected_ids - reachable_ids)
+    require(
+        not unreachable_visible,
+        "Figma snapshot visible nodes are not reachable from root_node through child_ids: "
+        + ", ".join(unreachable_visible),
+        errors,
+    )
     return errors
 
 
