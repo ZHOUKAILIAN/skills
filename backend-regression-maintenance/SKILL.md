@@ -11,11 +11,19 @@ Turn verified backend scenarios into a reusable regression asset that protects f
 
 This is a Layer 4 regression-governance skill under the AI Coding five-layer model. It does not re-run backend verification and does not re-classify raw frontend cases from scratch. It consumes backend verification reports, proposed regression cases, existing regression files, and project conventions to update the long-term backend regression suite.
 
-## Five-Layer Alignment
+## Relationship With `five-layer-classifier`
 
-Use `five-layer-classifier` when the repository boundary, destination file, public/private status, or formal truth-source status is unclear.
+`five-layer-classifier` decides asset responsibility, formal truth-source status, carrying boundary, public/private recommendation, and split/downgrade/local-retention actions. This skill uses those decisions to maintain regression assets. It does not replace the classifier and must not invent a layer boundary on its own.
 
-Regression maintenance must not blindly create a new docs folder. Decide where each artifact belongs:
+Use `five-layer-classifier` before editing regression files when any of these are unclear:
+
+1. where backend regression cases should live in this project
+2. whether an item is an executable implementation test, a project release convention, a shared governance rule, temporary local evidence, or research
+3. whether a proposed case mixes implementation reality with governance policy and should be split
+4. whether a run log, scratch SQL query, or one-off validation note is only Layer 5 local evidence
+5. whether public/private policy allows the artifact in public history
+
+Classifier decisions control writeback:
 
 1. Executable tests, fixtures, mocks, and schemas that express current implementation reality usually belong to Layer 2.
 2. Project-specific default test layout, release checklist location, or CI wiring usually belongs to Layer 3.
@@ -23,6 +31,8 @@ Regression maintenance must not blindly create a new docs folder. Decide where e
 4. One-off run logs, scratch SQL, temporary evidence, and local notes belong to Layer 5 unless explicitly promoted.
 
 If a proposed regression case mixes implementation truth with shared governance, recommend a split instead of forcing one file to carry both responsibilities.
+
+If no classification is available and the writeback boundary is obvious from existing project conventions, proceed and record the assumed layer. If the boundary is not obvious, stop with `NEEDS_REVIEW` instead of writing to the wrong place.
 
 ## Inputs
 

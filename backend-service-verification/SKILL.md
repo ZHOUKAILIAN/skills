@@ -29,11 +29,27 @@ Wrong: "The frontend case says click Save and see a success toast, so backend pa
 
 Right: "The case implies a create operation. Verify the response, authoritative database row, audit/log event, duplicate-submit behavior, and any stated consistency invariant."
 
-## Five-Layer Alignment
+## Relationship With `five-layer-classifier`
 
-This is a Layer 4 verification-governance skill under the AI Coding five-layer model. Use `five-layer-classifier` when repository boundaries, target files, or writeback destinations are unclear.
+`five-layer-classifier` decides asset responsibility, truth-source status, repository boundary, and writeback location. This skill uses those decisions to design and execute backend verification. It does not replace the classifier.
 
-Do not treat this skill as a project-specific runbook. It must adapt to any project by discovering that project's verification conventions.
+Use `five-layer-classifier` before or during this skill when any of these are unclear:
+
+1. whether the verification artifact is product definition, implementation reality, project landing, shared governance, local evidence, or research
+2. whether a report, testcase, fixture, script, or run log should be written into the product repo, control repo, local workspace, or nowhere
+3. whether a temporary validation result is allowed to become a formal truth source
+4. whether a mixed artifact should be split before writeback
+5. whether public/private history policy changes the destination
+
+The classifier output must affect this skill's plan:
+
+- Layer 1 findings define intended product semantics and acceptance criteria.
+- Layer 2 findings identify current implementation reality, executable tests, schemas, fixtures, and runtime behavior to verify.
+- Layer 3 findings identify project startup, packaging, CI, and default run conventions.
+- Layer 4 findings identify shared verification gates, report formats, and release rules.
+- Layer 5 findings identify local-only evidence that may support the current run but must not be promoted without an explicit decision.
+
+This skill is a Layer 4 verification-governance skill under the AI Coding five-layer model. Do not treat it as a project-specific runbook. It must adapt to any project by discovering that project's verification conventions.
 
 Default layer responsibilities:
 
