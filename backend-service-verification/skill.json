@@ -1,0 +1,4 @@
+{
+  "name": "backend-service-verification",
+  "description": "Use when verifying a backend requirement or service-side change by authoring and executing API/RPC/CLI end-to-end self-tests with service evidence."
+}

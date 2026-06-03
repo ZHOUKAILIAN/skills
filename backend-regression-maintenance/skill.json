@@ -1,0 +1,5 @@
+{
+  "name": "backend-regression-maintenance",
+  "description": "Use after backend verification to maintain reusable backend regression cases, classify P0/P1/P2/Manual coverage, and define pre-release run lists.",
+  "sub_skills": ["backend-service-verification"]
+}
