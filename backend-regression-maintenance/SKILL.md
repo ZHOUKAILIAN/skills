@@ -48,13 +48,7 @@ If proposed cases are missing, derive candidates from the verification report on
 
 ## Optional Governance Context
 
-This skill must work without the AI Coding five-layer model.
-
-If a five-layer classifier or equivalent governance source is available and ownership, truth-source status, writeback location, split/merge decision, or public/private history would change where regression assets are written, read that source as input. Do not inline or reimplement that model here, and do not require users to install it.
-
-If that governance source is unavailable, follow existing project testcase, test, release, and CI conventions. If the destination is obvious, proceed and record the assumption. If the destination is not obvious, produce case decisions and the run list, then mark file writeback `NEEDS_REVIEW`.
-
-Do not discard regression decisions just because governance classification is unavailable. Block only unsafe writeback.
+If a five-layer classifier or equivalent governance source is available and would change where regression assets are written, read it as input — do not inline or require it. When unavailable, follow the project's existing test, testcase, release, and CI conventions. Mark file writeback `NEEDS_REVIEW` only when the destination is genuinely ambiguous. Do not discard regression decisions just because governance classification is unavailable; block only unsafe writeback.
 
 ## Mode And Fallback Rules
 
