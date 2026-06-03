@@ -7,9 +7,22 @@ description: Use after backend verification to maintain reusable backend regress
 
 ## Goal
 
-Turn verified backend scenarios into a reusable regression asset that protects future releases.
+Turn verified backend scenarios into a reusable regression asset that protects future releases across any project.
 
-This skill does not re-run backend verification and does not re-classify raw frontend cases from scratch. It consumes backend verification reports, proposed regression cases, existing regression files, and project conventions to update the long-term backend regression suite.
+This is a Layer 4 regression-governance skill under the AI Coding five-layer model. It does not re-run backend verification and does not re-classify raw frontend cases from scratch. It consumes backend verification reports, proposed regression cases, existing regression files, and project conventions to update the long-term backend regression suite.
+
+## Five-Layer Alignment
+
+Use `five-layer-classifier` when the repository boundary, destination file, public/private status, or formal truth-source status is unclear.
+
+Regression maintenance must not blindly create a new docs folder. Decide where each artifact belongs:
+
+1. Executable tests, fixtures, mocks, and schemas that express current implementation reality usually belong to Layer 2.
+2. Project-specific default test layout, release checklist location, or CI wiring usually belongs to Layer 3.
+3. Shared regression policy, priority rules, and release-gate governance belong to Layer 4.
+4. One-off run logs, scratch SQL, temporary evidence, and local notes belong to Layer 5 unless explicitly promoted.
+
+If a proposed regression case mixes implementation truth with shared governance, recommend a split instead of forcing one file to carry both responsibilities.
 
 ## Inputs
 
@@ -21,6 +34,7 @@ Use available materials such as:
 4. existing backend regression index or testcase files
 5. existing automated test files and naming conventions
 6. release or CI documentation
+7. five-layer classification or project writeback policy when available
 
 If proposed cases are missing, derive them from the verification report only. If the report lacks backend evidence, mark the case `NEEDS_REVIEW` instead of inventing a stable regression case.
 
@@ -48,6 +62,8 @@ Reject or mark `Manual` when a case is only about frontend layout, animation, vi
 8. Produce a pre-release run list.
 
 Do not introduce a new testcase directory structure if the project already has one. Follow the project’s existing organization unless the user asks for a new structure.
+
+Do not place Layer 5 temporary evidence into a formal regression suite. Promote only stable cases with clear backend-observable assertions and traceable source context.
 
 ## Priority Rules
 
@@ -127,6 +143,7 @@ Result: UPDATED | NO_CHANGE | NEEDS_REVIEW
    - Verification report:
    - Existing regression files:
    - Project conventions:
+   - Five-layer/writeback policy:
 
 2. Case Decisions
    - Proposed case:
@@ -134,6 +151,7 @@ Result: UPDATED | NO_CHANGE | NEEDS_REVIEW
    - Priority:
    - Reason:
    - Target file:
+   - Layer / boundary:
 
 3. Files Updated
    - ...

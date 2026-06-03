@@ -29,6 +29,22 @@ Wrong: "The frontend case says click Save and see a success toast, so backend pa
 
 Right: "The case implies a create operation. Verify the response, authoritative database row, audit/log event, duplicate-submit behavior, and any stated consistency invariant."
 
+## Five-Layer Alignment
+
+This is a Layer 4 verification-governance skill under the AI Coding five-layer model. Use `five-layer-classifier` when repository boundaries, target files, or writeback destinations are unclear.
+
+Do not treat this skill as a project-specific runbook. It must adapt to any project by discovering that project's verification conventions.
+
+Default layer responsibilities:
+
+1. Requirements and product semantics usually belong to Layer 1.
+2. Source code, tests, schemas, fixtures, and runtime scripts usually belong to Layer 2.
+3. Project default startup, packaging, and repository layout usually belong to Layer 3.
+4. Shared verification policy, gates, and reusable verification reports belong to Layer 4.
+5. Temporary run logs, scratch queries, local env notes, and one-off validation artifacts belong to Layer 5 unless promoted.
+
+Before writing a verification plan, testcase, or report into the repository, decide whether it is current runtime reality, shared verification governance, or local temporary evidence. If the boundary is ambiguous, classify first instead of guessing.
+
 ## Project-Specific Discovery
 
 Every project has its own verification style. Discover it before designing or running checks.
@@ -51,15 +67,16 @@ Before executing, produce a concise plan covering:
 
 1. backend scope and explicit non-scope
 2. decomposed source test cases
-3. derived backend verification cases
-4. service startup and dependency readiness
-5. isolated test data and cleanup strategy
-6. API/RPC/CLI calls to execute
-7. database or persisted-state checks
-8. log/trace checks
-9. side effects: queue, outbox, cache, webhook, file, email, notification, or worker behavior
-10. failure paths and edge cases
-11. done criteria for PASS/PARTIAL/FAIL
+3. five-layer placement for verification artifacts and temporary evidence
+4. derived backend verification cases
+5. service startup and dependency readiness
+6. isolated test data and cleanup strategy
+7. API/RPC/CLI calls to execute
+8. database or persisted-state checks
+9. log/trace checks
+10. side effects: queue, outbox, cache, webhook, file, email, notification, or worker behavior
+11. failure paths and edge cases
+12. done criteria for PASS/PARTIAL/FAIL
 
 If the user only asks for a plan, stop after the plan and mark it as not executed.
 
@@ -155,18 +172,19 @@ Do not print raw secrets, cookies, authorization headers, passwords, tokens, pri
 
 Report **PASS** only when all applicable conditions are met:
 
-1. service startup and dependency readiness are verified or not required
-2. original test cases have been decomposed into backend scope and non-scope
-3. backend facts from the source cases are covered
-4. derived backend risks are covered or explicitly scoped out
-5. happy path evidence is observed
-6. important negative paths are verified or explicitly scoped out
-7. authoritative state is checked
-8. required consistency invariants are checked
-9. idempotency and concurrency are checked when applicable
-10. side effects and async behavior are checked when applicable
-11. logs/traces/audit are checked when applicable
-12. test data cleanup is completed or documented
+1. artifact placement follows the five-layer boundary, or unresolved placement is reported
+2. service startup and dependency readiness are verified or not required
+3. original test cases have been decomposed into backend scope and non-scope
+4. backend facts from the source cases are covered
+5. derived backend risks are covered or explicitly scoped out
+6. happy path evidence is observed
+7. important negative paths are verified or explicitly scoped out
+8. authoritative state is checked
+9. required consistency invariants are checked
+10. idempotency and concurrency are checked when applicable
+11. side effects and async behavior are checked when applicable
+12. logs/traces/audit are checked when applicable
+13. test data cleanup is completed or documented
 
 Report **PARTIAL** when evidence is incomplete, a required environment is unavailable, or an applicable risk is only designed but not executed.
 
@@ -186,6 +204,7 @@ Result: PASS | PARTIAL | FAIL
    - Technical plan:
    - Source test cases:
    - Project verification docs/conventions:
+   - Five-layer placement decisions:
 
 2. Original Test Case Decomposition
    - Original case:
@@ -196,6 +215,7 @@ Result: PASS | PARTIAL | FAIL
 
 3. Backend Verification Plan
    - Scope / non-scope:
+   - Artifact layer / writeback boundary:
    - Startup/dependencies:
    - Test data:
    - Calls to execute:
