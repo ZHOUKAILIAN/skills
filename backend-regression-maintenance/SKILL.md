@@ -13,9 +13,13 @@ This is a Layer 4 regression-governance skill under the AI Coding five-layer mod
 
 ## Relationship With `five-layer-classifier`
 
-`five-layer-classifier` decides asset responsibility, formal truth-source status, carrying boundary, public/private recommendation, and split/downgrade/local-retention actions. This skill uses those decisions to maintain regression assets. It does not replace the classifier and must not invent a layer boundary on its own.
+This skill must work on its own. `five-layer-classifier` is an optional governance aid, not a required pre-step.
 
-Use `five-layer-classifier` before editing regression files when any of these are unclear:
+When used alone, maintain regression assets by following the project's existing testcase, test, release, and CI conventions. If the destination is obvious, proceed and record the assumed boundary. If the destination is not obvious, produce the case decisions and pre-release run list, but mark file writeback as `NEEDS_REVIEW` instead of writing to the wrong place.
+
+`five-layer-classifier` decides asset responsibility, formal truth-source status, carrying boundary, public/private recommendation, and split/downgrade/local-retention actions when those questions matter. This skill uses those decisions to maintain regression assets. It does not replace the classifier and must not invent a layer boundary on its own.
+
+Use `five-layer-classifier` before editing regression files when any of these are unclear and the answer would change writeback, public/private history, formal truth-source status, or split/merge decisions:
 
 1. where backend regression cases should live in this project
 2. whether an item is an executable implementation test, a project release convention, a shared governance rule, temporary local evidence, or research
@@ -32,7 +36,7 @@ Classifier decisions control writeback:
 
 If a proposed regression case mixes implementation truth with shared governance, recommend a split instead of forcing one file to carry both responsibilities.
 
-If no classification is available and the writeback boundary is obvious from existing project conventions, proceed and record the assumed layer. If the boundary is not obvious, stop with `NEEDS_REVIEW` instead of writing to the wrong place.
+If no classification is available and the writeback boundary is obvious from existing project conventions, proceed and record the assumed layer or boundary. If the boundary is not obvious, do not discard the regression work: output the case decisions and run list, then mark file writeback as `NEEDS_REVIEW` instead of writing to the wrong place.
 
 ## Inputs
 

@@ -31,9 +31,13 @@ Right: "The case implies a create operation. Verify the response, authoritative 
 
 ## Relationship With `five-layer-classifier`
 
-`five-layer-classifier` decides asset responsibility, truth-source status, repository boundary, and writeback location. This skill uses those decisions to design and execute backend verification. It does not replace the classifier.
+This skill must work on its own. `five-layer-classifier` is an optional governance aid, not a required pre-step.
 
-Use `five-layer-classifier` before or during this skill when any of these are unclear:
+When used alone, proceed with project-local discovery, produce the verification plan/report, and keep writeback conservative. Use existing project conventions for obvious destinations, keep temporary evidence local, and mark uncertain writeback decisions as `needs classification` or `needs review`.
+
+`five-layer-classifier` decides asset responsibility, truth-source status, repository boundary, and writeback location when those questions matter. This skill uses those decisions to design and execute backend verification. It does not replace the classifier.
+
+Use `five-layer-classifier` before or during this skill when any of these are unclear and the answer would change where artifacts are written, what counts as a truth source, or whether material can enter shared history:
 
 1. whether the verification artifact is product definition, implementation reality, project landing, shared governance, local evidence, or research
 2. whether a report, testcase, fixture, script, or run log should be written into the product repo, control repo, local workspace, or nowhere
@@ -59,7 +63,7 @@ Default layer responsibilities:
 4. Shared verification policy, gates, and reusable verification reports belong to Layer 4.
 5. Temporary run logs, scratch queries, local env notes, and one-off validation artifacts belong to Layer 5 unless promoted.
 
-Before writing a verification plan, testcase, or report into the repository, decide whether it is current runtime reality, shared verification governance, or local temporary evidence. If the boundary is ambiguous, classify first instead of guessing.
+Before writing a verification plan, testcase, or report into the repository, decide whether it is current runtime reality, shared verification governance, or local temporary evidence. If the boundary is obvious from existing project conventions, proceed and record the assumed placement. If the boundary is ambiguous, do not block verification; complete the verification report and mark writeback as `needs classification` instead of guessing.
 
 ## Project-Specific Discovery
 
@@ -188,7 +192,7 @@ Do not print raw secrets, cookies, authorization headers, passwords, tokens, pri
 
 Report **PASS** only when all applicable conditions are met:
 
-1. artifact placement follows the five-layer boundary, or unresolved placement is reported
+1. artifact placement is recorded, either as an explicit five-layer decision, a project-convention assumption, or `needs classification`
 2. service startup and dependency readiness are verified or not required
 3. original test cases have been decomposed into backend scope and non-scope
 4. backend facts from the source cases are covered
@@ -220,7 +224,7 @@ Result: PASS | PARTIAL | FAIL
    - Technical plan:
    - Source test cases:
    - Project verification docs/conventions:
-   - Five-layer placement decisions:
+   - Artifact placement decisions or assumptions:
 
 2. Original Test Case Decomposition
    - Original case:
