@@ -111,7 +111,7 @@
 
 ```text
 Candidate ID:
-Source verification item or failure:
+Source self-test case, verification item, or failure:
 Evidence summary:
 Backend-observable assertion:
 Eligibility: eligible | manual | reject | needs_review

@@ -9,8 +9,9 @@
 1. 只跑一个大测试命令，就认为所有细节都验证过。
 2. 只看接口返回 200，就认为业务正确。
 3. 直接照抄前端/QA 测试用例，无法拆成服务端可验证事实。
-4. 数据库、日志、队列、缓存、异步任务、幂等、一致性、并发、权限、状态机等风险没有逐项检查。
-5. 当前需求验证完之后，没有把关键场景沉淀成长期回归保护。
+4. 没有自己编写可执行的服务端自测用例和 probe，只靠已有测试或口头检查。
+5. 数据库、日志、队列、缓存、异步任务、幂等、一致性、并发、权限、状态机等风险没有逐项检查。
+6. 当前需求验证完之后，没有把关键场景沉淀成长期回归保护。
 
 因此这组 skill 固定的是一条证据链：
 
@@ -23,7 +24,11 @@
   ↓
 服务端风险矩阵
   ↓
-逐项验证计划
+环境和安全判断
+  ↓
+服务端端到端 self-test cases
+  ↓
+可复现 probe artifacts（curl/RPC/CLI/SQL/log/cache/queue 等）
   ↓
 执行证据台账
   ↓
@@ -67,11 +72,13 @@ backend-regression-maintenance
 1. 读取需求、技术方案、原始测试用例、API 契约、代码、schema、项目运行约定。
 2. 将前端/QA/全链路测试用例拆解成服务端可验证事实。
 3. 从需求、技术方案、代码和 schema 主动推导服务端风险。
-4. 为每个事实和风险建立验证项。
-5. 执行 API/RPC/CLI、数据库、日志、副作用、幂等、一致性、并发、权限、状态机、异步等验证。
-6. 维护 execution evidence ledger。
-7. 输出 `PASS` / `PARTIAL` / `FAIL`。
-8. 输出 `Proposed Regression Cases`，供后续沉淀。
+4. 判断环境、认证、数据隔离、写操作和外部副作用是否安全。
+5. 为每个事实和风险编写服务端端到端 self-test case。
+6. 为每个 self-test case 建立可复现 probe artifact，例如 `curl`、RPC、CLI、SQL、log query、cache/queue 检查或项目原生 integration test。
+7. 执行 API/RPC/CLI、数据库、日志、副作用、幂等、一致性、并发、权限、状态机、异步等验证。
+8. 维护 execution evidence ledger。
+9. 输出 `PASS` / `PARTIAL` / `FAIL`。
+10. 输出 `Proposed Regression Cases`，供后续沉淀。
 
 一句话：
 
@@ -119,7 +126,7 @@ backend-regression-maintenance
 
 ```text
 backend-service-verification
-  = 用例拆解 + 风险推导 + 逐项执行 + evidence ledger + proposed regression cases
+  = 用例拆解 + 风险推导 + 自测用例 + probe artifact + 逐项执行 + evidence ledger + proposed regression cases
 
 backend-regression-maintenance
   = 消费有证据的 proposed cases，维护长期回归资产
@@ -165,20 +172,23 @@ POST /claim 返回 200。
 8. 审计日志或业务日志是否有对应事件。
 9. 失败路径是否返回正确错误码。
 
-因此 `backend-service-verification` 要求每个验证项都有 evidence ledger：
+因此 `backend-service-verification` 要求每个 self-test case 都必须先有 probe artifact，再有 evidence ledger：
 
 ```text
-Item ID:
+Self-test case ID:
+Probe ID:
 Expected result:
-Action performed:
-Evidence source:
+Request or command executed:
+Response evidence:
+Authoritative state evidence:
+Runtime evidence:
 Observed data:
 Status:
 Reason:
 Cleanup evidence:
 ```
 
-这解决的是“AI 跑了一个大的，但很多细节没有执行到”的问题。大命令可以作为证据来源，但必须映射回每个 item；没有映射的细节不算验证过。
+这解决的是“AI 跑了一个大的，但很多细节没有执行到”的问题。大命令可以作为证据来源，但必须映射回每个 self-test case；没有映射的细节不算验证过。
 
 ## 4. 反偷懒门禁如何下沉到每个阶段
 
@@ -210,19 +220,54 @@ Unknowns
 
 不能批量写 `N/A`。每类风险都要有理由。
 
-### 4.4 Verification Plan Gate
+### 4.4 Environment And Safety Gate
 
-每个后端事实或适用风险都必须成为一个验证项，并写明预期行为、数据准备、执行动作、证据来源、权威状态检查、清理和 PASS 标准。
+执行任何 probe 前，必须确认：
+
+1. 目标环境和 base URL / service entrypoint。
+2. 认证方式、测试身份、tenant 或 fixture。
+3. 写操作和外部副作用是否允许。
+4. 数据隔离和 cleanup 策略。
+5. 哪些操作必须阻塞。
+
+生产或共享环境写操作必须先取得用户明确批准。
+
+### 4.5 Self-Test Case Authoring Gate
+
+每个后端事实、适用风险、未知风险和重要负向路径，都必须成为一个服务端端到端 self-test case。
+
+每个 self-test case 必须写明：
+
+1. 入口：API、RPC、CLI、worker trigger、webhook handler 等。
+2. 请求 method/path/body/header 或 command。
+3. 预期 response status、schema、字段或 error code。
+4. 预期数据库/cache/queue/outbox/log/audit/worker 副作用。
+5. 幂等、并发、权限、状态机、负向路径等检查。
+6. cleanup 和 PASS 标准。
+
+“测试这个 endpoint”不是 self-test case。用例必须具体到另一个 agent 可以不猜测地执行请求并检查状态。
+
+### 4.6 Probe Artifact Gate
+
+每个 self-test case 必须有可复现 probe artifact。
+
+可以是：
+
+1. 带脱敏 secret 的精确 `curl` 命令。
+2. RPC/GraphQL/CLI/worker/webhook replay 命令。
+3. 项目原生 focused integration/E2E test command。
+4. SQL 查询、log 查询、cache/queue/outbox 检查。
+5. cleanup 命令或 cleanup verification query。
 
 “查 DB”“跑测试”“看日志”都不够，必须具体到权威表/存储、记录标识、查询策略或日志事件。
 
-### 4.5 Execution Evidence Gate
+### 4.7 Execution Evidence Gate
 
-每个验证项都必须有执行证据行。
+每个 self-test case 都必须有执行证据行。
 
 如果环境不可用、数据不可准备、执行不安全，必须标为 `NOT_RUN` 或 `BLOCKED`，而不是口头判断通过。
 
-### 4.6 Regression Decision Ledger
+### 4.8 Regression Decision Ledger
 
 每个 proposed regression case 和值得沉淀的后端失败，都必须有决策行。
 
@@ -237,7 +282,7 @@ Priority
 Target file or blocker
 ```
 
-### 4.7 Maintenance Verification Gate
+### 4.9 Maintenance Verification Gate
 
 回归维护完成后，还要验证维护结果：
 
@@ -321,7 +366,9 @@ backend skill 可以单独使用；
   → 事实来源盘点
   → 原始用例拆解
   → 风险覆盖矩阵
-  → 逐项验证计划
+  → 环境和安全判断
+  → 服务端端到端 self-test cases
+  → 可复现 probe artifacts
   → API/DB/log/side-effect/idempotency/consistency/concurrency 验证
   → evidence ledger
   → PASS/PARTIAL/FAIL
