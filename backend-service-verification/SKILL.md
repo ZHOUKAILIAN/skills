@@ -7,104 +7,118 @@ description: Use when verifying a backend requirement or service-side change fro
 
 ## Goal
 
-Prove whether a backend change is complete by deriving a backend verification plan, executing the service-side checks, and reporting observable evidence.
+Prove whether a backend change is complete by deriving backend-verifiable facts, executing service-side checks, and reporting the data evidence behind the judgment.
 
 This skill is for backend verification only. It does not verify frontend layout, visual style, animation, browser rendering, or toast placement except to extract the backend facts behind those user-visible assertions.
 
-## Source Test Cases Are Input, Not Backend Cases
+## Core Rule
 
-User-provided QA, frontend, or full-stack test cases are source material. Do not copy them directly as backend cases.
+No `PASS` without an evidence ledger.
 
-For each original case, decompose it into:
+Every backend fact, derived risk, and required negative path must have a ledger row with an expected result, evidence source, executed action or inspected source, observed data, status, and reason for any non-`PASS` status.
 
-1. frontend-only assertions
-2. backend-verifiable facts
-3. full-stack or manual assertions
-4. derived backend risks
-5. unknowns that need clarification
+Wrong: "The endpoint returned 200, so backend verification passed."
 
-Backend verification must combine the original cases with the requirement, technical plan, API contracts, database model, logs, queues, cache, and project conventions.
+Right: "The create request returned the expected schema, the authoritative row exists with the expected fields, the related count invariant holds, duplicate submit produced no second row, and the audit log contains the expected event."
 
-Wrong: "The frontend case says click Save and see a success toast, so backend passes if the API returns 200."
+## When To Use
 
-Right: "The case implies a create operation. Verify the response, authoritative database row, audit/log event, duplicate-submit behavior, and any stated consistency invariant."
+Use this skill when the task is to verify a backend requirement, API/RPC/CLI behavior, service-side bug fix, data-write flow, async worker behavior, or full-stack/QA test case that needs backend evidence.
 
-## Relationship With `five-layer-classifier`
+Use it when source test cases are written from a frontend or QA perspective and need to be decomposed into backend facts.
 
-This skill must work on its own. `five-layer-classifier` is an optional governance aid, not a required pre-step.
+## When Not To Use
 
-When used alone, proceed with project-local discovery, produce the verification plan/report, and keep writeback conservative. Use existing project conventions for obvious destinations, keep temporary evidence local, and mark uncertain writeback decisions as `needs classification` or `needs review`.
+Do not use this skill for purely visual frontend checks, copy/layout review, browser-only behavior, or design restoration unless those checks imply backend state or service behavior.
 
-`five-layer-classifier` decides asset responsibility, truth-source status, repository boundary, and writeback location when those questions matter. This skill uses those decisions to design and execute backend verification. It does not replace the classifier.
+Do not use it to maintain long-term regression assets after verification. Hand the `Proposed Regression Cases` section to `backend-regression-maintenance`.
 
-Use `five-layer-classifier` before or during this skill when any of these are unclear and the answer would change where artifacts are written, what counts as a truth source, or whether material can enter shared history:
+## Source Of Truth
 
-1. whether the verification artifact is product definition, implementation reality, project landing, shared governance, local evidence, or research
-2. whether a report, testcase, fixture, script, or run log should be written into the product repo, control repo, local workspace, or nowhere
-3. whether a temporary validation result is allowed to become a formal truth source
-4. whether a mixed artifact should be split before writeback
-5. whether public/private history policy changes the destination
+Use the strongest available project-local facts:
 
-The classifier output must affect this skill's plan:
+- requirement, acceptance criteria, product notes, issue, PR, or technical plan
+- source QA/frontend/full-stack test cases
+- API/RPC/CLI contracts, OpenAPI specs, protobufs, request validators, or route definitions
+- implementation code, migrations, schemas, models, fixtures, and existing tests
+- runtime configuration, service startup docs, dependency docs, CI scripts, or release docs
+- authoritative state: database records, persisted files, cache keys, outbox rows, queue messages, search index records, or generated artifacts
+- runtime evidence: responses, logs, traces, audit records, worker output, side effects, and cleanup evidence
 
-- Layer 1 findings define intended product semantics and acceptance criteria.
-- Layer 2 findings identify current implementation reality, executable tests, schemas, fixtures, and runtime behavior to verify.
-- Layer 3 findings identify project startup, packaging, CI, and default run conventions.
-- Layer 4 findings identify shared verification gates, report formats, and release rules.
-- Layer 5 findings identify local-only evidence that may support the current run but must not be promoted without an explicit decision.
+Do not treat model memory, summaries, "looks correct", or HTTP 200 alone as source-of-truth evidence.
 
-This skill is a Layer 4 verification-governance skill under the AI Coding five-layer model. Do not treat it as a project-specific runbook. It must adapt to any project by discovering that project's verification conventions.
+## Optional Governance Context
 
-Default layer responsibilities:
+This skill must work without the AI Coding five-layer model.
 
-1. Requirements and product semantics usually belong to Layer 1.
-2. Source code, tests, schemas, fixtures, and runtime scripts usually belong to Layer 2.
-3. Project default startup, packaging, and repository layout usually belong to Layer 3.
-4. Shared verification policy, gates, and reusable verification reports belong to Layer 4.
-5. Temporary run logs, scratch queries, local env notes, and one-off validation artifacts belong to Layer 5 unless promoted.
+If a five-layer classifier or equivalent governance source is available and artifact ownership, truth-source status, writeback location, or public/private history would change the verification output or repository writes, read that source as input. Do not inline or reimplement that model here, and do not require users to install it.
 
-Before writing a verification plan, testcase, or report into the repository, decide whether it is current runtime reality, shared verification governance, or local temporary evidence. If the boundary is obvious from existing project conventions, proceed and record the assumed placement. If the boundary is ambiguous, do not block verification; complete the verification report and mark writeback as `needs classification` instead of guessing.
+If that governance source is unavailable, continue with project-local discovery. Use existing project conventions for obvious destinations, keep temporary run evidence local, and mark ambiguous writeback decisions as `needs boundary decision` instead of guessing.
 
-## Project-Specific Discovery
+Do not block backend verification just because the five-layer model is unavailable. Block repository writeback only when the destination or ownership is unsafe to assume.
 
-Every project has its own verification style. Discover it before designing or running checks.
+## Mode And Fallback Rules
 
-Look for project-local sources such as:
+Choose one active mode before proceeding:
 
-- README or developer setup docs
-- testing or verification docs
-- package scripts, Make targets, task runners, or CI config
-- service entrypoints and config examples
-- database migrations/schema/model definitions
-- existing tests and test fixtures
-- logging, tracing, queue, cache, and worker conventions
+- `plan-only`: use when the user asks only for a verification plan. Stop after the plan, mark all items `NOT_RUN`, and do not claim backend behavior passed.
+- `execute-verification`: use by default when the user asks to verify, test, prove, or check completion. Produce the plan, execute safe checks, and fill the evidence ledger.
+- `evidence-review-only`: use when the environment cannot be run but reports, logs, database snapshots, or prior outputs are available. Review only the supplied evidence and report `PARTIAL` unless the evidence fully satisfies the completion standard.
 
-Use discovered conventions. If startup, test data, credentials, or database access are unclear and a wrong guess would change results or touch unsafe data, stop and ask.
+Fallbacks:
 
-## Backend Verification Plan
+- If startup, credentials, test data, or dependency access is unsafe or unavailable, mark affected items `BLOCKED` or `NOT_RUN`; do not invent evidence.
+- If a mechanical check cannot run, use manual inspection evidence only when the inspected source is named and the gap impact is reported.
+- If repository writeback ownership is unclear, continue verification but mark writeback `needs boundary decision`.
 
-Before executing, produce a concise plan covering:
+## Workflow
 
-1. backend scope and explicit non-scope
-2. decomposed source test cases
-3. five-layer placement for verification artifacts and temporary evidence
-4. derived backend verification cases
-5. service startup and dependency readiness
-6. isolated test data and cleanup strategy
-7. API/RPC/CLI calls to execute
-8. database or persisted-state checks
-9. log/trace checks
-10. side effects: queue, outbox, cache, webhook, file, email, notification, or worker behavior
-11. failure paths and edge cases
-12. done criteria for PASS/PARTIAL/FAIL
+### 1. Source Inventory Gate
 
-If the user only asks for a plan, stop after the plan and mark it as not executed.
+Before planning verification, enumerate the source materials and mark each as `read`, `missing`, `unavailable`, or `not applicable`.
 
-## Required Backend Risk Derivation
+Required inventory groups:
 
-Actively derive service-side risks from the requirement and technical plan, even when the original test cases do not mention them.
+1. requirement or acceptance source
+2. technical plan or implementation intent
+3. source test cases, if provided
+4. API/RPC/CLI contract or route definition
+5. implementation code path
+6. schema, model, migration, fixture, or authoritative state definition
+7. project startup, dependency, test, or CI convention
+8. log, trace, queue, cache, worker, or side-effect convention when relevant
 
-Check whether the change involves:
+Anti-laziness gate: do not write "docs reviewed" or "project conventions checked" without naming the files, commands, or sources inspected. If a source group is missing, record the impact before proceeding.
+
+### 2. Source Test Case Decomposition Gate
+
+Treat user-provided QA, frontend, or full-stack cases as source material, not backend cases to copy directly.
+
+For every original case, create a decomposition row:
+
+```text
+Original case ID:
+Original assertion:
+Frontend-only assertions:
+Backend-verifiable facts:
+Full-stack/manual assertions:
+Derived backend risks:
+Unknowns:
+Status: covered | not backend-applicable | blocked
+Reason:
+```
+
+Anti-laziness gate: zero unaccounted original cases. If one original case implies multiple backend facts, split them into separate verification items instead of testing only the obvious happy path.
+
+Wrong: "Click Save shows success toast, so call the save API once."
+
+Right: "The case implies create/update behavior. Verify response contract, authoritative persisted state, related records, duplicate submit behavior, and any required audit or async side effect."
+
+### 3. Backend Risk Derivation Gate
+
+Actively derive service-side risks from requirements, plan, code, schema, and source test cases. Do this even when the original cases do not mention the risk.
+
+For each risk category, record `applies`, `not applicable`, or `unknown`, with evidence and next action:
 
 1. idempotency or duplicate execution
 2. data consistency invariants
@@ -112,103 +126,113 @@ Check whether the change involves:
 4. permissions, roles, ownership, or tenant isolation
 5. state transitions and terminal states
 6. transactions, rollback, or partial failure
-7. asynchronous jobs, queues, outbox, webhooks, retries, or workers
+7. async jobs, queues, outbox, webhooks, retries, or workers
 8. cache reads, writes, invalidation, or stale data
 9. audit logs, business logs, traceability, and secret redaction
 10. migrations, backfills, compatibility, or data repair
 11. quotas, counters, balances, inventory, rewards, coupons, or limited resources
 
-For every applicable risk, add a verification item or explicitly mark it out of scope with the reason.
+Anti-laziness gate: no batch `N/A`. Every category needs a cited reason from requirement, code, schema, or project convention. Every `applies` or `unknown` category needs a verification item, blocker, or explicit out-of-scope decision.
 
-## Verification Dimensions
+### 4. Verification Plan Gate
 
-### API or Service Behavior
+Before executing, produce a concise plan with one verification item per backend fact or applicable risk.
 
-Verify the externally observable backend contract: status codes, response schema, error codes, permission errors, validation errors, and idempotent replay or duplicate-submit responses.
+Each item must include:
 
-HTTP 200 or command exit code alone is not evidence of correctness.
+```text
+Verification item ID:
+Source case or risk:
+Expected backend behavior:
+Data setup and isolation:
+Action to execute or source to inspect:
+Evidence sources:
+Authoritative state checks:
+Invariant, idempotency, concurrency, permission, state, async, log, or side-effect checks:
+Cleanup:
+PASS criterion:
+```
 
-### Authoritative State
+If the user only asks for a plan, stop after the plan and mark every item `NOT_RUN`.
 
-Verify the authoritative persisted state, not only returned data.
+Anti-laziness gate: the plan must name concrete evidence sources. "Run backend verification" is not a plan. "Check DB" is not enough unless the authoritative table/store, record identity, or lookup strategy is named.
 
-Depending on the project, this can include relational tables, document stores, cache keys, files, event/outbox rows, search index records, or generated artifacts.
+### 5. Execution Evidence Gate
 
-A database check is complete only when expected business state is observed in the authoritative records and enough related records are checked to prove the behavior.
+Execute the plan using the project's discovered conventions. If execution is unsafe or impossible, mark the affected item `BLOCKED` or `NOT_RUN` with the reason.
 
-### Consistency Invariants
+For every item, maintain an evidence ledger:
 
-When the plan or data model implies relationships such as totals, balances, counts, inventory, rewards, or formulas like `A = B + C`, verify the invariant from authoritative data.
+```text
+Item ID:
+Expected result:
+Action performed:
+Evidence source: response | database | cache | queue | log | trace | audit | file | code | test output | other
+Observed data:
+Status: PASS | FAIL | NOT_RUN | BLOCKED | OUT_OF_SCOPE
+Reason:
+Cleanup evidence:
+```
 
-Examples:
+Evidence rules:
 
-- total equals sum of details plus fees minus discounts
-- remaining inventory equals previous inventory minus successful claims plus returns
-- balance equals initial balance plus credits minus debits
-- completed count never exceeds total count
-- one business entity has only one active state when uniqueness is required
+- API/RPC/CLI checks must include contract-relevant response status, schema, error code, or returned fields.
+- Authoritative state checks must inspect the source of truth, not only returned data.
+- Consistency checks must verify the actual invariant from authoritative data.
+- Idempotency checks must prove duplicate execution does not duplicate business effects.
+- Concurrency checks must inspect final authoritative state, not only individual responses.
+- Permission checks must include allowed and denied access when relevant.
+- State-machine checks must include legal transitions, illegal transitions, and terminal-state protection when relevant.
+- Async and side-effect checks must verify the trigger record plus eventual effect or documented pending state.
+- Log, trace, and audit checks count only when they prove a business event, link request to downstream work, and avoid leaking secrets.
 
-Do not report PASS if required cross-record invariants were not checked.
-
-### Idempotency
-
-If the operation can be retried, submitted twice, receive duplicate callbacks, or use request IDs or idempotency keys, verify duplicate execution behavior.
-
-Expected evidence may include:
-
-1. exactly one business row or one intended state transition
-2. no duplicate side effects
-3. stable final state
-4. expected duplicate/replay response
-5. idempotency key or deduplication record when the design uses one
-
-### Concurrency
-
-If the operation touches limited resources, counters, balances, inventory, claims, locks, status transitions, or uniqueness constraints, evaluate concurrency risk.
-
-When applicable, run or design concurrent verification and check final authoritative state, not only individual request responses.
-
-Evidence should show no oversell, duplicate claim, double charge, negative counter, illegal state, unhandled deadlock, or lost update.
-
-### Permissions and Isolation
-
-For user, role, organization, or tenant scoped behavior, verify allowed and denied access. Include cross-tenant or cross-owner reads/writes when relevant.
-
-### State Machines
-
-If the feature has states, verify legal transitions, illegal transitions, terminal-state protection, retry behavior, and rollback or recovery expectations.
-
-### Async and Side Effects
-
-If behavior crosses queues, workers, outbox, webhooks, emails, notifications, search indexes, caches, or scheduled jobs, verify both the triggering record and the eventual effect or documented pending state.
-
-### Logs, Traces, and Audit
-
-Logs are verification evidence when they prove the expected business event, connect request to downstream work through request/trace IDs, show no relevant errors, and redact sensitive fields.
-
-Do not print raw secrets, cookies, authorization headers, passwords, tokens, private transcripts, or full production connection strings.
+Anti-laziness gate: one large command or one broad test suite run can support many rows, but it does not replace the ledger. Map the command output or runtime evidence back to each item. Details that are not mapped are not verified.
 
 ## Completion Standard
 
 Report **PASS** only when all applicable conditions are met:
 
-1. artifact placement is recorded, either as an explicit five-layer decision, a project-convention assumption, or `needs classification`
-2. service startup and dependency readiness are verified or not required
-3. original test cases have been decomposed into backend scope and non-scope
-4. backend facts from the source cases are covered
-5. derived backend risks are covered or explicitly scoped out
-6. happy path evidence is observed
-7. important negative paths are verified or explicitly scoped out
-8. authoritative state is checked
-9. required consistency invariants are checked
-10. idempotency and concurrency are checked when applicable
-11. side effects and async behavior are checked when applicable
-12. logs/traces/audit are checked when applicable
-13. test data cleanup is completed or documented
+1. source inventory is complete or gaps are documented as non-blocking
+2. every original source test case is decomposed or marked not backend-applicable with reason
+3. every backend fact is mapped to a verification item
+4. every risk category is individually classified with evidence
+5. every applicable or unknown risk is verified, blocked, or explicitly scoped out
+6. the evidence ledger has no `NOT_RUN` or `BLOCKED` row for required scope
+7. every required authoritative state check passed
+8. every required invariant, idempotency, concurrency, permission, state, async, side-effect, log, trace, or audit check passed
+9. important negative paths are verified or explicitly scoped out
+10. test data cleanup is completed or documented
 
-Report **PARTIAL** when evidence is incomplete, a required environment is unavailable, or an applicable risk is only designed but not executed.
+Report **PARTIAL** when evidence is incomplete, an environment is unavailable, a required item is `NOT_RUN` or `BLOCKED`, or an applicable risk is only planned but not executed.
 
-Report **FAIL** when observed behavior violates the requirement, plan, contract, state, invariant, or safety boundary.
+Report **FAIL** when observed behavior violates the requirement, technical plan, API contract, authoritative state, invariant, or safety boundary.
+
+Anti-laziness gate: do not downgrade missing evidence into "low risk" and still report `PASS`. Missing required evidence is `PARTIAL`; contradictory evidence is `FAIL`.
+
+## Gate Failure Behavior
+
+When a gate is incomplete, first try to fill the missing ledger rows, source references, or execution evidence.
+
+If the missing item cannot be filled safely, do not continue to a `PASS` result. Mark the affected item `NOT_RUN`, `BLOCKED`, or `OUT_OF_SCOPE` with reason, then report `PARTIAL` unless observed evidence already requires `FAIL`.
+
+Do not convert a failed gate into a vague residual risk. The failed item must appear in the report's evidence ledger or gaps section.
+
+## Proposed Regression Cases
+
+Propose regression cases only from verified backend facts, observed failures, or documented manual checks.
+
+Each proposed case must include:
+
+```text
+Candidate ID:
+Source verification item:
+Evidence summary:
+Backend assertion:
+Suggested priority: P0 | P1 | P2 | Manual
+Why it should or should not become long-term regression coverage:
+```
+
+The `Proposed Regression Cases` section is the handoff input for `backend-regression-maintenance`.
 
 ## Report Format
 
@@ -219,54 +243,74 @@ Backend Service Verification Report
 
 Result: PASS | PARTIAL | FAIL
 
-1. Source Materials
-   - Requirement:
-   - Technical plan:
-   - Source test cases:
-   - Project verification docs/conventions:
-   - Artifact placement decisions or assumptions:
+1. Source Inventory
+   - Source:
+   - Status:
+   - Evidence or location:
+   - Gap impact:
 
 2. Original Test Case Decomposition
-   - Original case:
+   - Original case ID:
    - Frontend-only assertions:
    - Backend facts:
    - Full-stack/manual assertions:
    - Derived backend risks:
+   - Status and reason:
 
-3. Backend Verification Plan
-   - Scope / non-scope:
-   - Artifact layer / writeback boundary:
-   - Startup/dependencies:
-   - Test data:
-   - Calls to execute:
-   - State checks:
-   - Consistency invariants:
-   - Idempotency:
-   - Concurrency:
-   - Permissions/state/async/logs:
-   - Cleanup:
+3. Risk Coverage Matrix
+   - Risk category:
+   - Applies / not applicable / unknown:
+   - Evidence:
+   - Verification item or out-of-scope reason:
 
-4. Execution Evidence
-   - Commands or calls:
-   - Responses:
-   - Persisted-state evidence:
-   - Log/trace evidence:
-   - Side effects:
+4. Verification Plan
+   - Item ID:
+   - Expected backend behavior:
+   - Evidence sources:
+   - Data setup and cleanup:
+   - PASS criterion:
 
-5. Gaps and Risks
+5. Execution Evidence Ledger
+   - Item ID:
+   - Action performed:
+   - Observed data:
+   - Status:
+   - Reason:
+   - Cleanup evidence:
+
+6. Gaps and Risks
    - Not verified:
    - Reason:
    - Impact:
 
-6. Final Judgment
+7. Final Judgment
    - Result:
    - Why:
 
-7. Proposed Regression Cases
-   - P0 candidates:
-   - P1 candidates:
-   - P2 candidates:
-   - Manual candidates:
+8. Proposed Regression Cases
+   - Candidate ID:
+   - Source verification item:
+   - Evidence summary:
+   - Suggested priority:
 ```
 
-The `Proposed Regression Cases` section is the handoff input for `backend-regression-maintenance`.
+## Proof Package
+
+The final answer must include:
+
+- source inventory count and any missing or unavailable source groups
+- original source test case count, decomposed count, and not-backend-applicable count
+- risk matrix count by `applies`, `not applicable`, and `unknown`
+- evidence ledger count by `PASS`, `FAIL`, `NOT_RUN`, `BLOCKED`, and `OUT_OF_SCOPE`
+- commands, calls, queries, logs, traces, code paths, or files used as evidence
+- skipped or impossible checks with reason and impact
+- cleanup status
+- final `PASS`, `PARTIAL`, or `FAIL` judgment with the blocking evidence behind it
+
+## Guardrails
+
+Do not print raw secrets, cookies, authorization headers, passwords, tokens, private transcripts, private user identifiers, or full production connection strings.
+
+Do not write to production, mutate shared data, trigger external callbacks, or send emails/notifications unless the user explicitly asked for that environment and side effect.
+
+If safe isolated data cannot be prepared, mark the affected checks `BLOCKED` or `Manual`; do not fabricate data evidence.

@@ -1,4 +1,4 @@
 {
   "name": "skill-standard",
-  "description": "Use when evaluating, auditing, or improving SKILL.md content against the repository's skill authoring standard."
+  "description": "Use before and after creating, editing, auditing, reviewing, syncing, or shipping any skill artifact, including SKILL.md, skill.json, assets, scripts, templates, examples, and installed skill copies."
 }
