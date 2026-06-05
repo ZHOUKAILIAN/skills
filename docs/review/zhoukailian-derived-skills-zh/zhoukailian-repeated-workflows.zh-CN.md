@@ -8,7 +8,7 @@
 
 - `name`: `zhoukailian-repeated-workflows`
 - `description`: 当 Zhou Kailian 提出 CrewPals、Figma、飞书/Lark、agent-team、调试、测试、PR、数据一致性或 skill 编写等重复工作流需求，并且应路由到已知本地流程时使用。
-- `sub_skills`: `zhoukailian-development-preferences`, `ai-doc-driven-dev`, `figma-design-audit`, `figma-restoration-review`, `css-best-practices`, `cst`, `crewpals-sports-metrics-investigation`, `agent-team-traceability`, `lark-doc`, `lark-base`, `lark-sheets`, `e2e-coverage-guard`, `skill-lifecycle`, `skill-standard`, `five-layer-classifier`, `code-reviewer`, `receiving-code-review`
+- `sub_skills`: `zhoukailian-development-preferences`, `ai-doc-driven-dev`, `figma-design-audit`, `figma-restoration-review`, `css-best-practices`, `cst`, `crewpals-sports-metrics-investigation`, `backend-service-verification`, `backend-regression-maintenance`, `mysql-readonly`, `redis-readonly`, `aliyun-sls-query`, `agent-team-traceability`, `lark-doc`, `lark-base`, `lark-sheets`, `e2e-coverage-guard`, `skill-lifecycle`, `skill-standard`, `five-layer-classifier`, `code-reviewer`, `receiving-code-review`, `using-git-worktrees`, `verification-before-completion`, `finishing-a-development-branch`
 
 ## Zhou Kailian 重复工作流
 
@@ -16,7 +16,24 @@
 
 先判断项目上下文，再判断工作流。个人基础设施仓库和 CrewPals 工作仓库有不同的事实来源、发布习惯和隐私边界。然后加载负责该工作的更窄 skill；当个人工程偏好会影响范围、验证或沟通方式时，再应用 `zhoukailian-development-preferences`。
 
-这个路由器基于 2026-05-27 的本地 Codex 历史扫描：770 个 session 文件、6062 条真实用户消息，以及围绕 CrewPals 调试、Figma/UI 还原、飞书文档、agent-team 可追溯性、E2E 验证、PR 流程和跑步数据一致性的重复任务聚类。
+这个路由器基于 2026-05-27 和 2026-06-05 的本地历史扫描。2026-06-05 这次扫描查看了最近两周 Claude Code 和 Codex 的对话，过滤掉工具输出和 continuation 噪音后，发现重复聚类主要集中在 CrewPals 发布工作、跑步数据一致性、CST 排查、接口验收、Figma/UI 还原、agent-team gate 失败、飞书文档/Base、skill 修复和数据库/索引决策。
+
+### Active Mode
+
+开始大量工作前，先选择一个 active mode：
+
+- `route-task`：默认模式。判断上下文，选择负责的路由，加载更窄的 skill，并执行该工作流。
+- `recover-thread`：当最新消息是“继续”、只问状态、中断标记、continuation 包装或工具/后台输出时使用。先从周边任务、分支/worktree、goal 状态或产物中恢复真实的人类目标，再行动。
+- `extract-workflow`：当用户要求总结重复工作或基于历史优化 skill 时使用。对话历史只作为证据；最终内容由目标 skill 文件和 `skill-standard` 负责。
+- `release-handoff`：当用户要求 push、开 PR、切 release 分支、merge，或询问部署/数据库下一步时使用。先验证代码状态，再把代码交付和手动操作分开说明。
+
+如果多个 mode 都可能负责下一步，先选择拥有事实来源的 mode，并说明后续是否需要次级 handoff。
+
+### 历史信号清洁
+
+不要把这些内容本身当成新需求：`Continue working toward the active thread goal`、`<turn_aborted>`、后台命令输出、粘贴的工具结果、粘贴的 skill 正文、local-command caveat。只有找到它们所指向的真实人类请求后，才能把它们作为执行上下文。
+
+如果无法从本地上下文恢复 active goal，应先概括当前可能状态并询问缺失目标，不要猜。
 
 ### 项目上下文路由
 
@@ -39,8 +56,21 @@
 | agent-team、run、PRD/dev/QA/acceptance、提示词 trace、skill 注入、阶段交接、工作流状态 | 使用 `agent-team-traceability` 做检查/设计/修复；运行时执行按目标仓库自己的运行说明和状态产物处理。 |
 | skill 创建、从历史提炼 skill、skill 修复、skill 同步 | 使用 `skill-lifecycle` 和 `skill-standard`；任务专属 gate 写在被编辑的 skill 内。 |
 | 来自飞书 bug/feature 记录的 E2E 覆盖 | 使用 `e2e-coverage-guard`；每条范围内记录都要覆盖，或标记不适用并说明原因。 |
+| 后端 endpoint、`new-api`、`curl`、服务启动、运行时验收，或“自己端到端验证” | 使用 `backend-service-verification`；单元测试或代码检查不能单独关闭后端验收。验证后只有在需要维护可复用回归覆盖时，才使用 `backend-regression-maintenance`。 |
+| 慢查询、SQL plan、索引选择、`ALTER TABLE`、DDL、数据修复，或“我应该操作什么数据库” | 可用时使用只读数据/日志 skills，通常根据事实来源选择 `mysql-readonly`、`redis-readonly`、`aliyun-sls-query`、`cst` 或 `crewpals-sports-metrics-investigation`。产出带风险、回滚和验证的 SQL/runbook。没有明确授权时，不执行生产或共享环境写入。 |
+| CrewPals 社群时间线、社群日记、存量数据迁移、backfill、reconcile 脚本、手动 feed/activity 补正或定时任务压力 | 语义变化时先用 `ai-doc-driven-dev` 路由归属需求/设计，再用 `backend-service-verification` 做 API/脚本/job 验收。要核算源数据行、生成行、dry-run 结果、幂等性、回滚和运行时负载。 |
+| agent-team gate 失败、缺少阶段产物、`max_stage_runs`、交付阻塞、prompt/skill 注入，或“为什么交付失败” | 使用 `agent-team-traceability`；先从运行时产物建立 trace ledger，再提出状态机或 prompt 修复。 |
+| OpenClaw、Bug扫描、飞书机器人、定时 agent 任务，或 agent 不响应 | 默认按个人/基础设施处理，除非它直接修改 CrewPals 数据。使用 `agent-team-traceability` 和仓库/流程日志；不要把凭据写进文档或提交。 |
 | 代码 review 请求或 review 反馈 | review 使用 `code-reviewer`；根据 review 评论改代码前使用 `receiving-code-review`。 |
-| 分支、worktree、push、PR/MR、发布交接 | 使用既有 git/worktree 实践；push/PR 前验证，并报告分支和检查结果。 |
+| 分支、worktree、push、PR/MR、release 分支、merge、部署交接 | 需要隔离时使用 `using-git-worktrees`，成功声明前使用 `verification-before-completion`，决定 PR/merge/清理时使用 `finishing-a-development-branch`。分别报告分支、diff 范围、验证、PR 链接，以及任何手动服务端/数据库步骤。 |
+
+### 红旗
+
+- “只是 push/PR。” 仍然要先检查 diff 和验证状态。
+- “用户粘贴了 continuation 或工具输出，所以这就是任务。” 先恢复真实人类目标。
+- “SQL 看起来很明显。” 在共享环境 DDL 或数据修复前，要先检查 schema/query path，并给出回滚和验证。
+- “endpoint 返回 200。” 后端行为相关时，还要验证响应字段、权威状态、日志或副作用。
+- “失败摘要说 blocked。” 解释 agent-team 失败前，要先检查底层阶段产物、状态文件和 prompt。
 
 ### 工作流
 
@@ -54,6 +84,7 @@
 
 - 不要把原始对话历史、凭据、token、用户标识、客户数据或生产密钥存入生成的 skills 或报告。
 - 生产写入、破坏性操作、包发布或大范围删除前必须停下来询问。
+- 即使用户用“看下”或“我应该怎么做”表述，数据库 DDL、数据 backfill、cron/job 触发和生产脚本运行也都按写操作处理。
 - 如果请求匹配多个路由，先选择拥有事实来源的路由，再交给次级 skills。
 
 ### 完成信号

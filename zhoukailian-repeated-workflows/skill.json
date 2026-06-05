@@ -9,6 +9,11 @@
     "css-best-practices",
     "cst",
     "crewpals-sports-metrics-investigation",
+    "backend-service-verification",
+    "backend-regression-maintenance",
+    "mysql-readonly",
+    "redis-readonly",
+    "aliyun-sls-query",
     "agent-team-traceability",
     "lark-doc",
     "lark-base",
@@ -18,6 +23,9 @@
     "skill-standard",
     "five-layer-classifier",
     "code-reviewer",
-    "receiving-code-review"
+    "receiving-code-review",
+    "using-git-worktrees",
+    "verification-before-completion",
+    "finishing-a-development-branch"
   ]
 }
