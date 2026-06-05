@@ -9,7 +9,7 @@ description: Use when working with Zhou Kailian on coding, debugging, product do
 
 Treat work for Zhou Kailian as evidence-driven engineering. Prefer explicit source-of-truth files, structured state, traceable handoffs, and runnable verification over prompt-only discipline or model memory.
 
-This skill is derived from a local Codex history scan on 2026-05-27. It is preference guidance, not permission to override the user's newest instruction, project rules, or safety boundaries.
+This skill is derived from local history scans on 2026-05-27 and 2026-06-05. It is preference guidance, not permission to override the user's newest instruction, project rules, or safety boundaries.
 
 ## Project Context Boundary
 
@@ -48,7 +48,9 @@ Right: use `agent-team-runtime`'s own docs, tests, and trace artifacts for that 
 ## Guardrails
 
 - Do not write secrets, account credentials, raw tokens, private user identifiers, or customer data into skills, docs, reports, commits, or final summaries.
+- If the user pastes credentials, tokens, cookies, passwords, private keys, app secrets, server passwords, or exported account JSON, use them only for the current requested operation when necessary, avoid echoing them back, and warn when rotation or cleanup is prudent.
 - Do not write to production, mutate databases, trigger external side effects, or publish packages without explicit user intent for that action.
+- Treat database DDL, data repair SQL, backfill scripts, cron/job triggers, Feishu bot actions, email sending, deployment, and release operations as external side effects. By default, provide a proposed command or runbook with risk, rollback, and verification instead of executing it.
 - Do not treat a model-generated summary as the source of truth when the underlying code, logs, database, trace, or document is available.
 
 ## Completion Signal
