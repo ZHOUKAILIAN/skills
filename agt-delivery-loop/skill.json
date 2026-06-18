@@ -1,0 +1,21 @@
+{
+  "name": "agt-delivery-loop",
+  "description": "Use when Zhou Kailian wants a requirement executed through AGT as a traceable delivery loop, or wants AGT blockers reviewed and rerouted with human decision points.",
+  "sub_skills": [
+    "zhoukailian-development-preferences",
+    "agent-team-traceability",
+    "backend-service-verification",
+    "ai-doc-driven-dev",
+    "figma-design-audit",
+    "figma-restoration-review",
+    "cst",
+    "crewpals-sports-metrics-investigation",
+    "lark-doc",
+    "lark-base",
+    "lark-sheets",
+    "mysql-readonly",
+    "redis-readonly",
+    "aliyun-sls-query",
+    "code-reviewer"
+  ]
+}

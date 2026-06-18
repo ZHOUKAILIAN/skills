@@ -59,6 +59,11 @@
 
 ## 已沉淀
 
+- `agt-delivery-loop`
+  - 将需求交给 AGT 作为可追踪的工程交付循环来执行
+  - 约束 AGT 的 start / continue / blocker review / handoff 四种模式
+  - 把 GPT、DS 或 local fallback 都视为执行器，完成判断以 runtime 状态、artifact、代码、验证和交付证据为准
+  - AGT 出现 scope、外部写操作、发布合并、生产数据动作或重复 blocker 时，必须带证据回到用户这里过一遍
 - `ai-doc-driven-dev`
   - 单入口的文档驱动开发 workflow
   - 从旧 `claude-community-plugins/plugins/ai-doc-driven-dev` 迁移而来
