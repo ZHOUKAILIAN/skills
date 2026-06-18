@@ -16,6 +16,7 @@ This router is based on local history scans from 2026-05-27 and 2026-06-05. The 
 Choose one active mode before substantial work:
 
 - `route-task`: default mode. Classify context, choose the owning route, load the narrower skill, and execute that workflow.
+- `agt-delivery-loop`: use when the user wants a requirement handed to AGT as a loop, or wants to review/repair an AGT blocker before continuing.
 - `recover-thread`: use when the latest message is "继续", status-only, an interruption marker, a continuation wrapper, or tool/background output. Recover the active human goal from the surrounding task, branch/worktree, goal state, or artifacts before acting.
 - `extract-workflow`: use when the user asks to summarize repeated work or improve skills from history. Use conversation history only as evidence; the target skill files and `skill-standard` own the final content.
 - `release-handoff`: use when the user asks to push, open a PR, cut a release branch, merge, or tell them what deployment/database step to take. Verify the code state first, then separate code handoff from manual operations.
@@ -46,6 +47,7 @@ If the active goal cannot be recovered from local context, summarize the likely 
 | Running data consistency, pace, distance, best record, FIT files, Garmin, Coros, Huawei, pause, abnormal speed, charts | Use `crewpals-sports-metrics-investigation`: map frontend, backend, stored data, display surfaces, and metric definition; verify representative records end to end. |
 | Feishu document, wiki, Base, sheet, approval, or report artifact | Use the matching `lark-*` skill. In CrewPals work, prefer Chinese docs with tables and PlantUML/Mermaid for process-heavy explanations. |
 | Requirement/design docs, canonical docs, documentation drift, bug routed back to feature docs | Use `ai-doc-driven-dev` for docs-first projects. For personal infrastructure repos, follow the repo's native design/test/changelog conventions instead of forcing a CrewPals requirement/design pair. |
+| User says AGT should do the requirement, run as a loop, continue an AGT session, connect GPT/DS to AGT, or review AGT's problem with them before continuing | Use `agt-delivery-loop`. It owns the AGT demand loop, blocker classification, human decision points, and proof package; hand off domain verification to narrower task skills. |
 | agent-team, run, PRD/dev/QA/acceptance, prompt trace, skill injection, stage handoff, workflow state | Use `agent-team-traceability` for inspection/design/fixes; for runtime execution, follow the target repo's own run instructions and state artifacts. |
 | Skill creation, skill extraction from history, skill repair, skill sync | Use `skill-lifecycle` and `skill-standard`; keep task-specific gates inside the skill being edited. |
 | E2E coverage from Feishu bug/feature records | Use `e2e-coverage-guard`; account for every in-scope record or mark it not applicable with reason. |
@@ -64,6 +66,7 @@ If the active goal cannot be recovered from local context, summarize the likely 
 - "The SQL looks obvious." Inspect schema/query path and provide rollback/verification before any shared-environment DDL or data repair.
 - "The endpoint returned 200." Verify response fields plus authoritative state, logs, or side effects when backend behavior matters.
 - "The failure summary says blocked." Inspect the underlying stage artifact, state file, and prompt before explaining an agent-team failure.
+- "AGT has a problem, so just switch models or rerun." Classify the blocker from AGT state and take scope, release, production write, or repeated blocker decisions back to the user.
 
 ## Workflow
 
