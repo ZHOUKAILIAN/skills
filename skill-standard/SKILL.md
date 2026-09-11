@@ -7,11 +7,27 @@ description: Use before and after creating, editing, auditing, reviewing, syncin
 
 Use this as the quality gate for every skill change. A good skill reduces repeated model failure modes with the minimum clear rules needed to change behavior. It should not become a speculative process document.
 
-This standard is self-contained; task-skill requirements live in this file.
+This is a controller skill. Quality rules live here; bundled tools and scenarios support verification, not additional policy.
+
+## Authority And Active Mode
+
+Follow the host's instruction hierarchy. This skill does not grant write permission or override user scope, project rules, or safety boundaries. `skill.json` is this repository's metadata contract, not an assumption about every runtime.
+
+Select the mode that matches the user's request:
+
+| Mode | Action | Completion |
+| --- | --- | --- |
+| `audit` | Read artifacts and report findings; do not edit, install, sync, or ship them | Applicable checks are accounted for and findings have evidence, even if the target fails |
+| `pre-edit` | Establish the authorized target, behavior change, applicable checks, and verification plan before editing | Scope and blocking ambiguities are resolved; otherwise stop and ask |
+| `post-edit` | Check the final authorized diff and report verification evidence | Report `pass`, `fail`, or `not verified` for applicable checks; unresolved gates block a readiness claim |
+
+An audit request does not authorize repairs. In edit modes, fix only authorized findings; report anything outside that scope. Audit completion and target readiness are separate decisions.
+
+Handoff: return findings to the user in `audit`; return gate results to the calling workflow in edit modes. If `skill-lifecycle` is already managing the change, it continues to own create/improve/sync/ship actions. This standard does not require loading it to perform an audit.
 
 ## Trigger Rule
 
-Use this skill before the first edit to any skill artifact and again before considering the work complete.
+Use this skill for skill audits, before the first authorized edit to any skill artifact, and again after the final edit. Do not invoke edit-mode completion requirements for a read-only request.
 
 Skill artifacts include:
 
@@ -37,7 +53,19 @@ Before judging or editing a skill, classify the target as one primary type:
 
 Reference or constraint skills are task skills when they define artifact quality or task-local checks. They are controller skills when they mostly govern process, routing, or verification across other skills.
 
-If a skill mixes both types, choose an explicit active mode before applying type-specific completion checks. Do not force one completion rule across materially different modes.
+If a skill mixes both types, record its primary type and choose an explicit active mode before applying type-specific completion checks. Do not force one completion rule across materially different modes.
+
+### Applicability, Not Section Counting
+
+The required shapes below describe behaviors, not mandatory headings. Accept equivalent guidance wherever it already lives; do not duplicate it to satisfy a template.
+
+- Apply universal rules to every skill. Apply type-specific checks only where the skill owns that behavior.
+- A lightweight constraint skill can define acceptable choices and checks without owning a separate delivery workflow, ledger, or proof artifact. Name the project/task contract it relies on; do not repeat that contract.
+- Require scope accounting for multi-item work the skill actually owns, and gate artifacts only when later phases depend on earlier evidence.
+- Record `N/A` with a short reason for inapplicable checks. An unavailable tool or missing evidence is `not verified`, not `N/A`.
+
+Wrong: expand `css-best-practices` into a complete delivery process to satisfy headings.
+Right: check its layout rules, project baseline, exception boundaries, and verification criteria.
 
 ## Universal Standard
 
@@ -83,11 +111,19 @@ Do not turn asset declarations into brittle command recipes unless the exact com
 
 Use skill-local paths such as `scripts/`, `assets/templates/`, and `references/`. Do not hardcode absolute paths or one user's workspace layout.
 
-Reference other skills by skill name. If a skill requires another skill, declare it in `skill.json` under `sub_skills`.
+Reference other skills by skill name. Declare required and conditionally required skills in `skill.json.sub_skills`; explain in the body when each is needed. Examples and optional recommendations are not required dependencies merely because they name a skill.
 
-Good: "Use `css-best-practices` before writing CSS."
+Before a dependency-gated phase:
 
-Bad: "Open the CSS skill from a user-specific absolute path."
+- Determine which dependencies the active mode requires.
+- Verify they can be resolved and read through the target environment's supported discovery mechanism. Being listed in JSON is not proof of availability; absence from this repository is not proof of runtime absence.
+- If a required dependency is unavailable, use only a fallback the skill explicitly allows, or stop that phase and report the missing dependency. Do not silently skip it, search private directories beyond the allowed discovery scope, or install it without authorization.
+
+Keep `sub_skills` as the existing list of skill names; do not invent a new runtime dependency schema for conditional branches.
+
+Good: "Use `css-best-practices` before writing CSS; read-only node inventory does not require it."
+
+Bad: "Open the CSS skill from a user-specific absolute path" or "all declared skills must load for every mode."
 
 ### 6. State What The Agent Must Not Guess
 
@@ -131,7 +167,7 @@ Use this section for skills that execute concrete work and produce a verifiable 
 
 ### Required Shape
 
-A task skill should usually contain:
+For task-owned behavior, check these concepts where applicable; the headings and order are optional:
 
 - `Goal`: the artifact or outcome the task must produce.
 - `When To Use` and `When Not To Use`: routing boundaries.
@@ -258,7 +294,7 @@ Use this section for skills that govern how the agent sequences, routes, delegat
 
 ### Required Shape
 
-A controller skill should usually contain:
+For controller-owned behavior, check these concepts where applicable; the headings and order are optional:
 
 - `Core Rule`: the behavior change that must happen.
 - `Priority`: how it interacts with user instructions, project rules, and other skills.
@@ -300,21 +336,48 @@ Good: "`skill-lifecycle` owns create/improve/sync/ship flow; `skill-standard` ow
 
 Bad: "Use other relevant standards as needed."
 
-## Audit Checklist
+## Verify The Skill's Behavior
 
-An audit or improvement pass using this standard is complete only when all applicable checks are done:
+Static correctness and behavioral effectiveness are separate claims. Checking a skill's headings or testing its helper script does not prove an agent follows the skill.
 
-- The skill type is classified as task, controller, or mixed. Mixed skills have an explicit active mode.
-- `SKILL.md` frontmatter and `skill.json` names/descriptions are checked for consistency.
-- Descriptions are trigger-only and do not summarize workflow.
-- Skill dependencies are checked against `skill.json.sub_skills`; undeclared required dependencies are fixed or the dependency is removed.
-- Bundled assets, scripts, templates, references, examples, or helper files are documented by purpose when present.
-- Paths are portable and skill-local unless the skill is explicitly environment-specific.
-- Stop-and-ask boundaries exist where silent assumptions would change scope, behavior, writes, ownership, safety, or file targets.
-- Completion signals exist and fit the skill type and active mode.
-- Task skills have a concrete artifact or outcome, required inputs when needed, source of truth, local anti-laziness gates, mode/fallback rules, guardrails, output format, artifact verification, failed-verification behavior, and a proof package.
-- Controller skills have a core rule, priority or interaction model, active mode when needed, gates, red flags, handoff rules, and process verification.
-- Each major rule traces to a real failure mode, safety boundary, or success condition.
-- Findings include concrete file references, or the audit explicitly states that no findings were found in scope.
+For new skills or changes to triggers, routing, permissions, gates, fallback, or completion behavior, define a small regression set before editing:
 
-Do not end an audit after a few style observations. End it after metadata, dependency surface, assets, portability, ambiguity boundaries, type-specific structure, completion logic, and reported findings have all been checked for the requested scope.
+- A request that should trigger the skill or changed branch.
+- A similar request that should not trigger it or should route elsewhere.
+- A known failure-mode request that the change must handle correctly.
+- A stop/ask case when permission or safety boundaries are affected.
+
+Cases may overlap. Record the input, expected actions, prohibited actions, and observable pass/fail criteria. Use sanitized fixtures; never run destructive or external-write cases against live systems.
+
+When an agent runner is available, exercise the affected cases in isolation with the target skill and record the model/runtime, loaded skill version, actual actions, and evidence. Test discovery with metadata in the normal discovery surface, not by explicitly telling the agent to load the target. A before/after comparison supports an improvement claim; a post-change run alone supports only the observed result.
+
+If execution is unavailable, report `static review only; behavioral verification not run` with the reason. The review may finish, but do not call the skill behaviorally verified. Wording-only edits that preserve behavior need static checks, not a mandatory full replay.
+
+## Available Assets
+
+Resolve these paths relative to this skill directory, not the caller's working directory:
+
+- `scripts/validate_skill.py`: read-only structural checks for this repository's `SKILL.md` / `skill.json` contract. Checks YAML/JSON parsing, non-empty name/description fields, normalized metadata agreement, directory/name agreement, and dependency-list shape. Repeated `--asset` arguments check explicitly selected skill-local paths for existence and containment. It does not infer assets from example snippets, resolve runtime dependencies, enforce headings, or evaluate behavior.
+- `scripts/test_validate_skill.py`: isolated temporary-directory regression tests for the validator, including malformed metadata and unsafe asset paths. Run when changing the validator.
+- `evals/scenarios.md`: behavioral regression inputs and observation criteria for this standard. Use when its routing, applicability, dependency, or completion rules change; these are test definitions, not proof of execution.
+
+The validator requires Python 3.9+ and PyYAML 6.x (declared in its inline script metadata). Use an existing compatible environment, or `uv run --no-project <skill-dir>/scripts/validate_skill.py <target-skill-dir>`. Add `--asset <relative-path>` for each actual bundled asset selected from the target's declarations; a plain invocation does not check assets. It exits 0 for checked structural rules passing, 1 for findings, and 2 for usage or missing-tool errors. A zero exit code is not an overall skill-quality verdict.
+
+For helper regression tests: `uv run --no-project --with 'PyYAML>=6,<7' python -B -m unittest discover -s <skill-dir>/scripts -p 'test_*.py'`. If tooling is unavailable, report the unrun checks rather than substituting confidence.
+
+## Audit Checklist And Result
+
+Account for each category with `pass`, `fail`, `not verified`, or `N/A` and a reason/evidence. Group related checks in the report; do not produce a long checklist when a concise summary is sufficient.
+
+- **Scope and mode:** authorized files, primary skill type, active mode, and applicable type-specific checks are explicit.
+- **Metadata:** frontmatter and JSON parse; names/descriptions agree after trimming surrounding whitespace; descriptions are trigger-only. `skill.json` and directory/name agreement are this repository's contract; check the destination contract separately for external reuse.
+- **Dependencies:** required references agree with `sub_skills`; active-mode conditions and missing-dependency behavior are clear. Distinguish declaration checks from target-runtime availability checks.
+- **Assets and portability:** actual bundled helpers are documented by purpose; selected paths exist and are skill-local unless explicitly environment-specific. Example paths are not treated as bundled files.
+- **Authority and ambiguity:** instruction interaction, write scope, stop/ask boundaries, and handoffs are clear wherever applicable.
+- **Behavior and completion:** applicable task/controller concepts are covered without requiring heading names. Rules address concrete failure modes or success conditions; failed gates block the phase they govern.
+- **Verification:** structural checks, helper tests when affected, manual semantic review, and applicable behavioral scenarios have separate results. Missing evidence is not a pass.
+- **Findings:** report file references, consequence, and suggested repair, or explicitly report no findings in scope. In audit mode do not repair findings; in edit modes fix only authorized items and re-check after the final change.
+
+Report review completion separately from target readiness. State changed artifacts (if any), verification run, skipped checks with reasons, and remaining blockers. Do not mark the target ready while applicable blocking checks fail or remain unverified.
+
+Red flags: "audit means fix", "all headings exist so the skill works", "declared means loadable", and "the check could not run so it is N/A". Each skips a different gate; none is an acceptable completion argument.
